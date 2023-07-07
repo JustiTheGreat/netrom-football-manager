@@ -1,18 +1,21 @@
-package com.netrom.netromfootballmanager.entities;
+package com.netrom.netromfootballmanager.entities.daos;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
-public class Stadium {
+@AllArgsConstructor
+public class StadiumDAO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, updatable = false)
-    private long id;
+    private Long id;
 
     @Column(nullable = false)
     private String name;
@@ -21,5 +24,10 @@ public class Stadium {
     private String location;
 
     @OneToMany(mappedBy = "stadium", fetch = FetchType.LAZY)
-    private List<Game> games;
+    private List<GameDAO> games;
+
+    public List<Long> getGamesIds() {
+        if (games == null) return null;
+        return games.stream().map(GameDAO::getId).collect(Collectors.toList());
+    }
 }
