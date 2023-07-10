@@ -3,9 +3,11 @@ package com.netrom.netromfootballmanager.entities.daos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class GameResultDAO {
 
@@ -14,10 +16,10 @@ public class GameResultDAO {
     @Column(nullable = false, updatable = false)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private Integer goalsTeamOne;
 
-    @Column(nullable = false)
+    @Column
     private Integer goalsTeamTwo;
 
     @OneToOne(mappedBy = "gameResult", fetch = FetchType.LAZY)

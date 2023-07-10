@@ -3,12 +3,14 @@ package com.netrom.netromfootballmanager.entities.daos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class TeamDAO {
 
@@ -17,22 +19,22 @@ public class TeamDAO {
     @Column(nullable = false, updatable = false)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String name;
 
-    @Column(nullable = false)
+    @Column
     private Integer goalsScored;
 
-    @Column(nullable = false)
+    @Column
     private Integer goalsReceived;
 
-    @Column(nullable = false)
+    @Column
     private Integer victories;
 
-    @Column(nullable = false)
+    @Column
     private Integer defeats;
 
-    @Column(nullable = false)
+    @Column
     private Integer draws;
 
     @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)

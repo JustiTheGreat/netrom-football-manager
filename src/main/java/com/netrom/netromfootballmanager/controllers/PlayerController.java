@@ -1,8 +1,8 @@
 package com.netrom.netromfootballmanager.controllers;
 
-import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.entities.daos.PlayerDAO;
 import com.netrom.netromfootballmanager.entities.dtos.PlayerDTO;
+import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.services.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,49 +13,55 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/player")
+@RequestMapping("/players")
 public class PlayerController {
 
     @Autowired
     private PlayerService playerService;
 
-    @PostMapping
-    public ResponseEntity<PlayerDTO> createPlayer(@RequestBody PlayerDTO player) {
-        if (player == null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        PlayerDAO resultDB = playerService.create(Mapper.DTOToDAO(player));
-        if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        PlayerDTO result = Mapper.DAOToDTO(resultDB);
-        return new ResponseEntity<>(result, HttpStatus.CREATED);
-    }
+    @Autowired
+    private Mapper mapper;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PlayerDTO> getPlayerById(@PathVariable("id") long playerId) {
-        PlayerDAO resultDB = playerService.getById(playerId);
-        if (resultDB == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        PlayerDTO result = Mapper.DAOToDTO(resultDB);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    @PostMapping
+    public ResponseEntity<PlayerDTO> createPlayer(@RequestBody PlayerDTO requestDTO) {
+        if (requestDTO == null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        PlayerDAO resultDB = playerService.create(mapper.DTOToDAO(requestDTO));
+        if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        PlayerDTO result = mapper.DAOToDTO(resultDB);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<List<PlayerDTO>> getPlayerList() {
         List<PlayerDAO> resultDB = playerService.getList();
+        if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        List<PlayerDTO> result = resultDB.stream().map(game -> mapper.DAOToDTO(game)).collect(Collectors.toList());
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PlayerDTO> getPlayerById(@PathVariable("id") long id) {
+        PlayerDAO resultDB = playerService.getById(id);
         if (resultDB == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        List<PlayerDTO> result = resultDB.stream().map(Mapper::DAOToDTO).collect(Collectors.toList());
+        PlayerDTO result = mapper.DAOToDTO(resultDB);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PlayerDTO> updatePlayer(@PathVariable("id") long playerId, @RequestBody PlayerDTO player) {
-        PlayerDAO resultDB = playerService.update(playerId, Mapper.DTOToDAO(player));
-        if (resultDB == null) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        PlayerDTO result = Mapper.DAOToDTO(resultDB);
+    public ResponseEntity<PlayerDTO> updatePlayer(@PathVariable("id") long id, @RequestBody PlayerDTO requestDTO) {
+        if (id != requestDTO.getId()) return new ResponseEntity<>(HttpStatus.CONFLICT);
+        if (playerService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        PlayerDAO resultDB = playerService.update(id, mapper.DTOToDAO(requestDTO));
+        if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        PlayerDTO result = mapper.DAOToDTO(resultDB);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<PlayerDTO> deletePlayerById(@PathVariable("id") long playerId) {
-        playerService.deleteById(playerId);
-        if (playerService.getById(playerId) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<PlayerDTO> deletePlayerById(@PathVariable("id") long id) {
+        if (playerService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        playerService.deleteById(id);
+        if (playerService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

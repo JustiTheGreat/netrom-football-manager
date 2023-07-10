@@ -3,12 +3,14 @@ package com.netrom.netromfootballmanager.entities.daos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class StadiumDAO {
 
@@ -17,10 +19,10 @@ public class StadiumDAO {
     @Column(name = "id", nullable = false, updatable = false)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String name;
 
-    @Column(nullable = false)
+    @Column
     private String location;
 
     @OneToMany(mappedBy = "stadium", fetch = FetchType.LAZY)

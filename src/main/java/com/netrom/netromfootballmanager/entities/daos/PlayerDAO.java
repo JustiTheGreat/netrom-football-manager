@@ -4,9 +4,11 @@ import com.netrom.netromfootballmanager.entities.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class PlayerDAO {
 
@@ -15,18 +17,18 @@ public class PlayerDAO {
     @Column(nullable = false, updatable = false)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     private String name;
 
-    @Column(nullable = false)
+    @Column
     private Integer goalsScored;
 
-    @Column(nullable = false)
+    @Column
     @Enumerated(EnumType.STRING)
     private Role role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "team_id", nullable = false)
+    @JoinColumn(name = "team_id")
     private TeamDAO team;
 
     public Long getTeamId() {
