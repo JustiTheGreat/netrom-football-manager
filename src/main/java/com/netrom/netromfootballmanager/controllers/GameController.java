@@ -4,6 +4,7 @@ import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.dtos.GameDTO;
 import com.netrom.netromfootballmanager.services.GameService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,11 @@ public class GameController {
     @GetMapping("/{id}")
     public ResponseEntity<GameDTO> getGameById(@PathVariable("id") long id) {
         GameDAO resultDB = gameService.getById(id);
-        if (resultDB == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            resultDB = gameService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         GameDTO result = mapper.DAOToDTO(resultDB);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -50,7 +55,11 @@ public class GameController {
     @PutMapping("/{id}")
     public ResponseEntity<GameDTO> updateGame(@PathVariable("id") long id, @RequestBody GameDTO requestDTO) {
         if (id != requestDTO.getId()) return new ResponseEntity<>(HttpStatus.CONFLICT);
-        if (gameService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            gameService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         GameDAO resultDB = gameService.update(id, mapper.DTOToDAO(requestDTO));
         if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         GameDTO result = mapper.DAOToDTO(resultDB);
@@ -59,9 +68,17 @@ public class GameController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<GameDTO> deleteGameById(@PathVariable("id") long id) {
-        if (gameService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            gameService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         gameService.deleteById(id);
-        if (gameService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        try {
+            gameService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+        }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

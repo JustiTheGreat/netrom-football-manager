@@ -4,6 +4,7 @@ import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
 import com.netrom.netromfootballmanager.entities.dtos.GameResultDTO;
 import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.services.GameResultService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,8 +42,12 @@ public class GameResultController {
 
     @GetMapping("/{id}")
     public ResponseEntity<GameResultDTO> getGameResultById(@PathVariable("id") long id) {
-        GameResultDAO resultDB = gameResultService.getById(id);
-        if (resultDB == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        GameResultDAO resultDB;
+        try {
+            resultDB = gameResultService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         GameResultDTO result = mapper.DAOToDTO(resultDB);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -50,7 +55,11 @@ public class GameResultController {
     @PutMapping("/{id}")
     public ResponseEntity<GameResultDTO> updateGameResult(@PathVariable("id") long id, @RequestBody GameResultDTO requestDTO) {
         if (id != requestDTO.getId()) return new ResponseEntity<>(HttpStatus.CONFLICT);
-        if (gameResultService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            gameResultService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         GameResultDAO resultDB = gameResultService.update(id, mapper.DTOToDAO(requestDTO));
         if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         GameResultDTO result = mapper.DAOToDTO(resultDB);
@@ -59,10 +68,18 @@ public class GameResultController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<GameResultDTO> deleteGameResultById(@PathVariable("id") long id) {
-        if (gameResultService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            gameResultService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         gameResultService.removeReferences(id);
         gameResultService.deleteById(id);
-        if (gameResultService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        try {
+            gameResultService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+        }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

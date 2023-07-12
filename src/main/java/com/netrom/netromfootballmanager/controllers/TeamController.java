@@ -4,12 +4,14 @@ import com.netrom.netromfootballmanager.entities.daos.TeamDAO;
 import com.netrom.netromfootballmanager.entities.dtos.TeamDTO;
 import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.services.TeamService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -41,8 +43,12 @@ public class TeamController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TeamDTO> getTeamById(@PathVariable("id") long id) {
-        TeamDAO resultDB = teamService.getById(id);
-        if (resultDB == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        TeamDAO resultDB;
+        try {
+            resultDB = teamService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         TeamDTO result = mapper.DAOToDTO(resultDB);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -50,7 +56,11 @@ public class TeamController {
     @PutMapping("/{id}")
     public ResponseEntity<TeamDTO> updateTeam(@PathVariable("id") long id, @RequestBody TeamDTO requestDTO) {
         if (id != requestDTO.getId()) return new ResponseEntity<>(HttpStatus.CONFLICT);
-        if (teamService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            teamService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         TeamDAO resultDB = teamService.update(id, mapper.DTOToDAO(requestDTO));
         if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         TeamDTO result = mapper.DAOToDTO(resultDB);
@@ -59,10 +69,18 @@ public class TeamController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<TeamDTO> deleteTeamById(@PathVariable("id") long id) {
-        if (teamService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            teamService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         teamService.removeReferences(id);
         teamService.deleteById(id);
-        if (teamService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        try {
+            teamService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+        }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

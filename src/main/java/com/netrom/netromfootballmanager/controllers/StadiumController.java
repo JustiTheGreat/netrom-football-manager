@@ -4,6 +4,7 @@ import com.netrom.netromfootballmanager.entities.daos.StadiumDAO;
 import com.netrom.netromfootballmanager.entities.dtos.StadiumDTO;
 import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.services.StadiumService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,8 +42,12 @@ public class StadiumController {
 
     @GetMapping("/{id}")
     public ResponseEntity<StadiumDTO> getStadiumById(@PathVariable("id") long id) {
-        StadiumDAO resultDB = stadiumService.getById(id);
-        if (resultDB == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        StadiumDAO resultDB;
+        try {
+            resultDB = stadiumService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         StadiumDTO result = mapper.DAOToDTO(resultDB);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -50,7 +55,11 @@ public class StadiumController {
     @PutMapping("/{id}")
     public ResponseEntity<StadiumDTO> updateStadium(@PathVariable("id") long id, @RequestBody StadiumDTO requestDTO) {
         if (id != requestDTO.getId()) return new ResponseEntity<>(HttpStatus.CONFLICT);
-        if (stadiumService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            stadiumService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         StadiumDAO resultDB = stadiumService.update(id, mapper.DTOToDAO(requestDTO));
         if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         StadiumDTO result = mapper.DAOToDTO(resultDB);
@@ -59,10 +68,18 @@ public class StadiumController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<StadiumDTO> deleteStadiumById(@PathVariable("id") long id) {
-        if (stadiumService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            stadiumService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         stadiumService.removeReferences(id);
         stadiumService.deleteById(id);
-        if (stadiumService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        try {
+            stadiumService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
+        }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
