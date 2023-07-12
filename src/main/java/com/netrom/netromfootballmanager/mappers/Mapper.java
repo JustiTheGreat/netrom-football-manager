@@ -2,12 +2,29 @@ package com.netrom.netromfootballmanager.mappers;
 
 import com.netrom.netromfootballmanager.entities.daos.*;
 import com.netrom.netromfootballmanager.entities.dtos.*;
+import com.netrom.netromfootballmanager.services.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.stream.Collectors;
 
 @Service
 public class Mapper {
+
+    @Autowired
+    private GameService gameService;
+
+    @Autowired
+    private GameResultService gameResultService;
+
+    @Autowired
+    private PlayerService playerService;
+
+    @Autowired
+    private StadiumService stadiumService;
+
+    @Autowired
+    private TeamService teamService;
 
     public GameDTO DAOToDTO(GameDAO gameDAO) {
         return new GameDTO(
@@ -66,18 +83,10 @@ public class Mapper {
         return new GameDAO(
                 gameDTO.getId(),
                 gameDTO.getDateAndTimeInMillis(),
-                gameDTO.getTeamOneId() == null ? null : new TeamDAO() {{
-                    setId(gameDTO.getTeamOneId());
-                }},
-                gameDTO.getTeamTwoId() == null ? null : new TeamDAO() {{
-                    setId(gameDTO.getTeamTwoId());
-                }},
-                gameDTO.getStadiumId() == null ? null : new StadiumDAO() {{
-                    setId(gameDTO.getStadiumId());
-                }},
-                gameDTO.getGameResultId() == null ? null : new GameResultDAO() {{
-                    setId(gameDTO.getGameResultId());
-                }}
+                gameDTO.getTeamOneId() == null ? null : teamService.getById(gameDTO.getTeamOneId()),
+                gameDTO.getTeamTwoId() == null ? null : teamService.getById(gameDTO.getTeamTwoId()),
+                gameDTO.getStadiumId() == null ? null : stadiumService.getById(gameDTO.getStadiumId()),
+                gameDTO.getGameResultId() == null ? null : gameResultService.getById(gameDTO.getGameResultId())
         );
     }
 
@@ -86,9 +95,7 @@ public class Mapper {
                 gameResultDTO.getId(),
                 gameResultDTO.getGoalsTeamOne(),
                 gameResultDTO.getGoalsTeamTwo(),
-                gameResultDTO.getGameId() == null ? null : new GameDAO() {{
-                    setId(gameResultDTO.getGameId());
-                }}
+                gameResultDTO.getGameId() == null ? null : gameService.getById(gameResultDTO.getGameId())
         );
     }
 
@@ -97,9 +104,7 @@ public class Mapper {
                 playerDTO.getName(),
                 playerDTO.getGoalsScored(),
                 playerDTO.getRole(),
-                playerDTO.getTeamId() == null ? null : new TeamDAO() {{
-                    setId(playerDTO.getTeamId());
-                }}
+                playerDTO.getTeamId() == null ? null : teamService.getById(playerDTO.getTeamId())
         );
     }
 
@@ -108,9 +113,7 @@ public class Mapper {
                 stadiumDTO.getId(),
                 stadiumDTO.getName(),
                 stadiumDTO.getLocation(),
-                stadiumDTO.getGamesIds().stream().map(gameId -> gameId == null ? null : new GameDAO() {{
-                    setId(gameId);
-                }}).collect(Collectors.toList())
+                stadiumDTO.getGamesIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList())
         );
     }
 
@@ -123,15 +126,9 @@ public class Mapper {
                 teamDTO.getVictories(),
                 teamDTO.getDefeats(),
                 teamDTO.getDraws(),
-                teamDTO.getPlayersIds().stream().map(playerId -> playerId == null ? null : new PlayerDAO() {{
-                    setId(playerId);
-                }}).collect(Collectors.toList()),
-                teamDTO.getGamesAsTeamOneIds().stream().map(gameId -> gameId == null ? null : new GameDAO() {{
-                    setId(gameId);
-                }}).collect(Collectors.toList()),
-                teamDTO.getGamesAsTeamTwoIds().stream().map(gameId -> gameId == null ? null : new GameDAO() {{
-                    setId(gameId);
-                }}).collect(Collectors.toList())
+                teamDTO.getPlayersIds().stream().map(playerId -> playerId == null ? null : playerService.getById(playerId)).collect(Collectors.toList()),
+                teamDTO.getGamesAsTeamOneIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList()),
+                teamDTO.getGamesAsTeamTwoIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList())
         );
     }
 }
