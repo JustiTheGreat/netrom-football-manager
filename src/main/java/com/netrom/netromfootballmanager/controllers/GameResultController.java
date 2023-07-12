@@ -60,6 +60,7 @@ public class GameResultController {
     @DeleteMapping("/{id}")
     public ResponseEntity<GameResultDTO> deleteGameResultById(@PathVariable("id") long id) {
         if (gameResultService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        gameResultService.removeReferences(id);
         gameResultService.deleteById(id);
         if (gameResultService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

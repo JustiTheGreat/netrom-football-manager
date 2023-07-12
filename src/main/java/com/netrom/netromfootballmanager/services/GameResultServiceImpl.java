@@ -1,7 +1,9 @@
 package com.netrom.netromfootballmanager.services;
 
+import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
-import com.netrom.netromfootballmanager.repositories.ResultRepository;
+import com.netrom.netromfootballmanager.repositories.GameRepository;
+import com.netrom.netromfootballmanager.repositories.GameResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,40 +12,51 @@ import java.util.List;
 @Service
 public class GameResultServiceImpl implements GameResultService {
     @Autowired
-    private ResultRepository resultRepository;
+    private GameResultRepository gameResultRepository;
+
+    @Autowired
+    private GameRepository gameRepository;
 
     @Override
-    public GameResultDAO create(GameResultDAO result) {
-        return resultRepository.save(result);
+    public GameResultDAO create(GameResultDAO dao) {
+        return gameResultRepository.save(dao);
     }
 
     @Override
-    public GameResultDAO getById(long resultId) {
-        return resultRepository.getReferenceById(resultId);
+    public GameResultDAO getById(long id) {
+        return gameResultRepository.getReferenceById(id);
     }
 
     @Override
     public List<GameResultDAO> getList() {
-        return resultRepository.findAll();
+        return gameResultRepository.findAll();
     }
 
     @Override
-    public GameResultDAO update(long resultId, GameResultDAO result) {
-        GameResultDAO gameDB = resultRepository.getReferenceById(resultId);
-        if (result.getGoalsTeamOne() != null && result.getGoalsTeamOne() >= 0) {
-            gameDB.setGoalsTeamOne(result.getGoalsTeamOne());
+    public GameResultDAO update(long id, GameResultDAO newDao) {
+        GameResultDAO gameDAO = gameResultRepository.getReferenceById(id);
+        if (newDao.getGoalsTeamOne() != null && newDao.getGoalsTeamOne() >= 0) {
+            gameDAO.setGoalsTeamOne(newDao.getGoalsTeamOne());
         }
-        if (result.getGoalsTeamTwo() != null) {
-            gameDB.setGoalsTeamTwo(result.getGoalsTeamTwo());
+        if (newDao.getGoalsTeamTwo() != null) {
+            gameDAO.setGoalsTeamTwo(newDao.getGoalsTeamTwo());
         }
-        if (result.getGame() != null) {
-            gameDB.setGame(result.getGame());
+        if (newDao.getGame() != null) {
+            gameDAO.setGame(newDao.getGame());
         }
-        return resultRepository.save(gameDB);
+        return gameResultRepository.save(gameDAO);
     }
 
     @Override
-    public void deleteById(long playerId) {
-        resultRepository.deleteById(playerId);
+    public void deleteById(long id) {
+        gameResultRepository.deleteById(id);
+    }
+
+    @Override
+    public void removeReferences(long id) {
+        GameResultDAO gameResultDAO = gameResultRepository.getReferenceById(id);
+        GameDAO game = gameResultDAO.getGame();
+        game.setGameResult(null);
+        gameRepository.save(game);
     }
 }

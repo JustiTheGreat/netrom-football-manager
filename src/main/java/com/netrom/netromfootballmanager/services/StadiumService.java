@@ -6,13 +6,15 @@ import java.util.List;
 
 public interface StadiumService {
 
-    StadiumDAO create(StadiumDAO stadium);
+    StadiumDAO create(StadiumDAO dao);
 
-    StadiumDAO getById(long stadiumId);
+    StadiumDAO getById(long id);
 
     List<StadiumDAO> getList();
 
-    StadiumDAO update(long stadiumId, StadiumDAO stadium);
+    StadiumDAO update(long id, StadiumDAO newDao);
 
-    void deleteById(long stadiumId);
+    void deleteById(long id);
+
+    void removeReferences(long id);
 }

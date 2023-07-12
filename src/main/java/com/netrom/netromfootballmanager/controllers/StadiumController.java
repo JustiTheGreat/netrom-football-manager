@@ -60,6 +60,7 @@ public class StadiumController {
     @DeleteMapping("/{id}")
     public ResponseEntity<StadiumDTO> deleteStadiumById(@PathVariable("id") long id) {
         if (stadiumService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        stadiumService.removeReferences(id);
         stadiumService.deleteById(id);
         if (stadiumService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

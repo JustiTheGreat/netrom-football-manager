@@ -6,13 +6,15 @@ import java.util.List;
 
 public interface GameResultService {
 
-    GameResultDAO create(GameResultDAO result);
+    GameResultDAO create(GameResultDAO dao);
 
-    GameResultDAO getById(long resultId);
+    GameResultDAO getById(long id);
 
     List<GameResultDAO> getList();
 
-    GameResultDAO update(long resultId, GameResultDAO result);
+    GameResultDAO update(long id, GameResultDAO newDao);
 
-    void deleteById(long resultId);
+    void deleteById(long id);
+
+    void removeReferences(long id);
 }

@@ -1,6 +1,7 @@
 package com.netrom.netromfootballmanager.services;
 
 import com.netrom.netromfootballmanager.entities.daos.StadiumDAO;
+import com.netrom.netromfootballmanager.repositories.GameRepository;
 import com.netrom.netromfootballmanager.repositories.StadiumRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,14 +14,17 @@ public class StadiumServiceImpl implements StadiumService {
     @Autowired
     private StadiumRepository stadiumRepository;
 
+    @Autowired
+    private GameRepository gameRepository;
+
     @Override
-    public StadiumDAO create(StadiumDAO stadium) {
-        return stadiumRepository.save(stadium);
+    public StadiumDAO create(StadiumDAO dao) {
+        return stadiumRepository.save(dao);
     }
 
     @Override
-    public StadiumDAO getById(long stadiumId) {
-        return stadiumRepository.getReferenceById(stadiumId);
+    public StadiumDAO getById(long id) {
+        return stadiumRepository.getReferenceById(id);
     }
 
     @Override
@@ -29,22 +33,31 @@ public class StadiumServiceImpl implements StadiumService {
     }
 
     @Override
-    public StadiumDAO update(long stadiumId, StadiumDAO stadium) {
-        StadiumDAO stadiumDB = stadiumRepository.getReferenceById(stadiumId);
-        if (stadium.getName() != null && !stadium.getName().isBlank()) {
-            stadiumDB.setName(stadium.getName());
+    public StadiumDAO update(long id, StadiumDAO newDao) {
+        StadiumDAO stadiumDB = stadiumRepository.getReferenceById(id);
+        if (newDao.getName() != null && !newDao.getName().isBlank()) {
+            stadiumDB.setName(newDao.getName());
         }
-        if (stadium.getLocation() != null && !stadium.getLocation().isBlank()) {
-            stadiumDB.setLocation(stadium.getLocation());
+        if (newDao.getLocation() != null && !newDao.getLocation().isBlank()) {
+            stadiumDB.setLocation(newDao.getLocation());
         }
-        if (stadium.getGames() != null) {
-            stadiumDB.setGames(stadium.getGames());
+        if (newDao.getGames() != null) {
+            stadiumDB.setGames(newDao.getGames());
         }
         return stadiumRepository.save(stadiumDB);
     }
 
     @Override
-    public void deleteById(long stadiumId) {
-        stadiumRepository.deleteById(stadiumId);
+    public void deleteById(long id) {
+        stadiumRepository.deleteById(id);
+    }
+
+    @Override
+    public void removeReferences(long id) {
+        StadiumDAO stadiumDAO = stadiumRepository.getReferenceById(id);
+        stadiumDAO.getGames().forEach(game -> {
+            game.setStadium(null);
+            gameRepository.save(game);
+        });
     }
 }

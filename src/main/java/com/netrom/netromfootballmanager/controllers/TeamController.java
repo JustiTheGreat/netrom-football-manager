@@ -60,6 +60,7 @@ public class TeamController {
     @DeleteMapping("/{id}")
     public ResponseEntity<TeamDTO> deleteTeamById(@PathVariable("id") long id) {
         if (teamService.getById(id) == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        teamService.removeReferences(id);
         teamService.deleteById(id);
         if (teamService.getById(id) != null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

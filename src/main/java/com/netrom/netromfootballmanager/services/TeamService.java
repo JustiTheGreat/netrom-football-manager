@@ -6,13 +6,15 @@ import java.util.List;
 
 public interface TeamService {
 
-    TeamDAO create(TeamDAO team);
+    TeamDAO create(TeamDAO dao);
 
-    TeamDAO getById(long teamId);
+    TeamDAO getById(long id);
 
     List<TeamDAO> getList();
 
-    TeamDAO update(long teamId, TeamDAO team);
+    TeamDAO update(long id, TeamDAO newDao);
 
-    void deleteById(long teamId);
+    void deleteById(long id);
+
+    void removeReferences(long id);
 }
