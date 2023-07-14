@@ -1,0 +1,11 @@
+.MyLabel {
+    width: 30%;
+    max-width: 200px;
+}
+.MyInput {
+    max-width: 200px;
+}
+.MyLabel, .MyInput {
+    display: inline-block;
+    margin: 5px;
+}

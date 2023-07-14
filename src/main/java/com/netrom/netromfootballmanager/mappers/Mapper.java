@@ -6,6 +6,7 @@ import com.netrom.netromfootballmanager.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,7 +114,7 @@ public class Mapper {
                 stadiumDTO.getId(),
                 stadiumDTO.getName(),
                 stadiumDTO.getLocation(),
-                stadiumDTO.getGamesIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList())
+                stadiumDTO.getGamesIds() == null ? new ArrayList<>() : stadiumDTO.getGamesIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList())
         );
     }
 
@@ -126,9 +127,9 @@ public class Mapper {
                 teamDTO.getVictories(),
                 teamDTO.getDefeats(),
                 teamDTO.getDraws(),
-                teamDTO.getPlayersIds().stream().map(playerId -> playerId == null ? null : playerService.getById(playerId)).collect(Collectors.toList()),
-                teamDTO.getGamesAsTeamOneIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList()),
-                teamDTO.getGamesAsTeamTwoIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList())
+                teamDTO.getPlayersIds() == null ? new ArrayList<>() : teamDTO.getPlayersIds().stream().map(playerId -> playerId == null ? null : playerService.getById(playerId)).collect(Collectors.toList()),
+                teamDTO.getGamesAsTeamOneIds() == null ? new ArrayList<>() : teamDTO.getGamesAsTeamOneIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList()),
+                teamDTO.getGamesAsTeamTwoIds() == null ? new ArrayList<>() : teamDTO.getGamesAsTeamTwoIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList())
         );
     }
 }
