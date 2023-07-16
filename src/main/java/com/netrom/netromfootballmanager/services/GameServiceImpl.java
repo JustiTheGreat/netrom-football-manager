@@ -1,6 +1,7 @@
 package com.netrom.netromfootballmanager.services;
 
 import com.netrom.netromfootballmanager.entities.daos.GameDAO;
+import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
 import com.netrom.netromfootballmanager.repositories.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,7 +51,11 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void deleteById(long playerId) {
-        gameRepository.deleteById(playerId);
+    public void deleteById(long gameId) {
+        gameRepository.deleteById(gameId);
+    }
+
+    public GameDAO findGameByGameResult(GameResultDAO gameResult) {
+        return gameRepository.findFirstByGameResult(gameResult);
     }
 }

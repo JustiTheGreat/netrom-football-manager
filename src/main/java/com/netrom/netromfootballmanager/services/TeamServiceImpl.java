@@ -78,16 +78,22 @@ public class TeamServiceImpl implements TeamService {
     public void removeReferences(long id) {
         TeamDAO teamDAO = teamRepository.getReferenceById(id);
         teamDAO.getPlayers().forEach(player -> {
-            player.setTeam(null);
-            playerRepository.save(player);
+            if (player != null) {
+                player.setTeam(null);
+                playerRepository.save(player);
+            }
         });
         teamDAO.getGamesAsTeamOne().forEach(game -> {
-            game.setTeamOne(null);
-            gameRepository.save(game);
+            if (game != null) {
+                game.setTeamOne(null);
+                gameRepository.save(game);
+            }
         });
         teamDAO.getGamesAsTeamTwo().forEach(game -> {
-            game.setTeamTwo(null);
-            gameRepository.save(game);
+            if (game != null) {
+                game.setTeamTwo(null);
+                gameRepository.save(game);
+            }
         });
     }
 }

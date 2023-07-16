@@ -56,7 +56,9 @@ public class GameResultServiceImpl implements GameResultService {
     public void removeReferences(long id) {
         GameResultDAO gameResultDAO = gameResultRepository.getReferenceById(id);
         GameDAO game = gameResultDAO.getGame();
-        game.setGameResult(null);
-        gameRepository.save(game);
+        if (game != null) {
+            game.setGameResult(null);
+            gameRepository.save(game);
+        }
     }
 }

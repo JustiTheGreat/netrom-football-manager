@@ -56,8 +56,10 @@ public class StadiumServiceImpl implements StadiumService {
     public void removeReferences(long id) {
         StadiumDAO stadiumDAO = stadiumRepository.getReferenceById(id);
         stadiumDAO.getGames().forEach(game -> {
-            game.setStadium(null);
-            gameRepository.save(game);
+            if (game != null) {
+                game.setStadium(null);
+                gameRepository.save(game);
+            }
         });
     }
 }

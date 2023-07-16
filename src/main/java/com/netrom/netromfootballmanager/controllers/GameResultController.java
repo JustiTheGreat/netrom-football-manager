@@ -1,9 +1,13 @@
 package com.netrom.netromfootballmanager.controllers;
 
+import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
+import com.netrom.netromfootballmanager.entities.dtos.GameDTO;
 import com.netrom.netromfootballmanager.entities.dtos.GameResultDTO;
+import com.netrom.netromfootballmanager.entities.dtos.GameTeamsNamesDTO;
 import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.services.GameResultService;
+import com.netrom.netromfootballmanager.services.GameService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +24,9 @@ public class GameResultController {
 
     @Autowired
     private GameResultService gameResultService;
+
+    @Autowired
+    private GameService gameService;
 
     @Autowired
     private Mapper mapper;
@@ -82,5 +89,19 @@ public class GameResultController {
             return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @CrossOrigin
+    @GetMapping("/game-teams-names/{id}")
+    public ResponseEntity<GameTeamsNamesDTO> getGameTeamsNamesByGameResult(@PathVariable("id") long id) {
+        GameResultDAO gameResultDAO = new GameResultDAO(id, null, null, null);
+        GameDAO resultDB = gameService.findGameByGameResult(gameResultDAO);
+        if (resultDB == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        String teamOneName = resultDB.getTeamOne() == null ? null : resultDB.getTeamOne().getName();
+        String teamTwoName = resultDB.getTeamTwo() == null ? null : resultDB.getTeamTwo().getName();
+        GameTeamsNamesDTO result = new GameTeamsNamesDTO(teamOneName, teamTwoName);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

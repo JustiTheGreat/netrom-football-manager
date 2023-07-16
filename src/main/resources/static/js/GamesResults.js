@@ -1,54 +1,35 @@
-document.addEventListener("DOMContentLoaded", getAllPlayers());
+document.addEventListener("DOMContentLoaded", getAllGamesResults());
 
 function getObjectId(tr) {
     const id = tr.getAttribute("data-uniqueid");
     return id;
 }
 
-function deletePlayer(tr) {
-    deletePlayerById(getObjectId(tr));
+function deleteGameResult(tr) {
+    deleteGameResultById(getObjectId(tr));
 }
 
 function readFormFieldsValues(id) {
     const data = {
         id: id,
-        name: document.getElementById("name").value,
-        goalsScored: document.getElementById("goalsScored").value,
-        role: document.getElementById("role").value,
-        teamId: document.getElementById("teamId").value,
+        goalsTeamOne: document.getElementById("goalsTeamOne").value,
+        goalsTeamTwo: document.getElementById("goalsTeamTwo").value,
     };
     const json = JSON.stringify(data);
     return json;
 }
 
 function setFormFieldsValues(data) {
-    document.getElementById("name").setAttribute("value", data.name);
-    document.getElementById("goalsScored").setAttribute("value", data.goalsScored);
-    document.getElementById("role").value = data.role;
-    document.getElementById("teamId").value = data.teamId;
-}
-
-function setTeamSelectData(responseData) {
-    const select = document.getElementById("teamId");
-    select.innerHTML = '<option value="null">No team</option>';
-    for (let i = 0; i < responseData.length; i++) {
-        const option = document.createElement("option");
-        option.value = responseData[i].id;
-        option.text = responseData[i].name;
-        select.appendChild(option);
-    }
+    document.getElementById("goalsTeamOne").setAttribute("value", data.goalsTeamOne);
+    document.getElementById("goalsTeamTwo").setAttribute("value", data.goalsTeamTwo);
 }
 
 function openCreateForm() {
-    document.getElementById("formTitle").textContent = "Create player";
-
-    getAllTeams(setTeamSelectData);
+    document.getElementById("formTitle").textContent = "Create games result";
 
     const data = {
-        name: "",
-        goalsScored: 0,
-        role: "DEFENDER",
-        teamId: null,
+        goalsTeamOne: 0,
+        goalsTeamTwo: 0,
     };
     setFormFieldsValues(data);
 
@@ -56,40 +37,38 @@ function openCreateForm() {
     finishButton.textContent = "Create";
     finishButton.onclick = function() {
         const json = readFormFieldsValues();
-        createPlayer(json);
+        createGameResult(json);
     }
 
     $("#form").modal("show");
 }
 
 function openEditForm(tr) {
-    document.getElementById("formTitle").textContent = "Edit player";
-
-    getAllTeams(setTeamSelectData);
+    document.getElementById("formTitle").textContent = "Edit games result";
 
     const id = getObjectId(tr);
-    getPlayerById(id, setFormFieldsValues);
+    getGameResultById(id, setFormFieldsValues);
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Update";
     finishButton.onclick = function() {
         const json = readFormFieldsValues(id);
-        updatePlayerById(id, json);
+        updateGameResultById(id, json);
     }
 
     $("#form").modal("show");
 }
 
-function createPlayer(json) {
+function createGameResult(json) {
     $.ajax({
         type: "POST",
-        url: "http://localhost:8090/players",
+        url: "http://localhost:8090/games-results",
         headers: {
             "Content-type": "application/json",
         },
         data: json,
         success: function (responseData) {
-            getAllPlayers();
+            getAllGamesResults();
         },
         error: function (error) {
             console.log(`Error ${error}`);
@@ -97,25 +76,35 @@ function createPlayer(json) {
     });
 }
 
-function getAllPlayers() {
+function getAllGamesResults() {
     $.ajax({
         type: "GET",
-        url: "http://localhost:8090/players",
+        url: "http://localhost:8090/games-results",
         success: function (responseData) {
             const requests = [];
             for (let i = 0; i < responseData.length; i++) {
                 responseData[i] = {
                     ...responseData[i],
+                    teamOneName: null,
+                    teamTwoName: null,
                     actions:
                     '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block" onclick="deletePlayer(this.parentElement.parentElement)">Delete</button>',
+                    '<button type="button" class="btn btn-danger btn-block" onclick="deleteGameResult(this.parentElement.parentElement)">Delete</button>',
                 }
-
-                const request = getTeamById(responseData[i].teamId, function(response) {
-                    responseData[i].teamId = response.name;
+                const request = getGameTeamsNamesByGameResult(responseData[i].id, function(response) {
+                    responseData[i].teamOneName = response.teamOneName;
+                    responseData[i].teamTwoName = response.teamTwoName;
+//                    responseData[i] = {
+//                        ...responseData[i],
+//                        ...response,
+//                        actions:
+//                        '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+//                        '<button type="button" class="btn btn-danger btn-block" onclick="deleteGameResult(this.parentElement.parentElement)">Delete</button>',
+//                    };
                 });
                 requests.push(request);
             }
+
             $.when.apply(this, requests).done(function() {
                 $("#dataTable").bootstrapTable({data: responseData});
             });
@@ -126,10 +115,10 @@ function getAllPlayers() {
     });
 }
 
-function getPlayerById(id, onSuccessFunction) {
+function getGameResultById(id, onSuccessFunction) {
     return $.ajax({
         type: "GET",
-        url: "http://localhost:8090/players/" + id,
+        url: "http://localhost:8090/games-results/" + id,
         success: function (responseData) {
             onSuccessFunction(responseData);
         },
@@ -139,16 +128,16 @@ function getPlayerById(id, onSuccessFunction) {
     });
 }
 
-function updatePlayerById(id, json) {
+function updateGameResultById(id, json) {
     $.ajax({
         type: "PUT",
-        url: "http://localhost:8090/players/" + id,
+        url: "http://localhost:8090/games-results/" + id,
         headers: {
             "Content-type": "application/json",
         },
         data: json,
         success: function (responseData) {
-            getAllPlayers();
+            getAllGamesResults();
         },
         error: function (error) {
             console.log(`Error ${error}`);
@@ -156,12 +145,12 @@ function updatePlayerById(id, json) {
     });
 }
 
-function deletePlayerById(id) {
+function deleteGameResultById(id) {
     $.ajax({
         type: "DELETE",
-        url: "http://localhost:8090/players/" + id,
+        url: "http://localhost:8090/games-results/" + id,
         success: function (responseData) {
-            getAllPlayers();
+            getAllGamesResults();
         },
         error: function (error) {
             console.log(`Error ${error}`);
@@ -169,23 +158,10 @@ function deletePlayerById(id) {
     });
 }
 
-function getAllTeams(onSuccessFunction) {
+function getGameTeamsNamesByGameResult(id, onSuccessFunction) {
     $.ajax({
         type: "GET",
-        url: "http://localhost:8090/teams",
-        success: function (responseData) {
-            onSuccessFunction(responseData);
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getTeamById(id, onSuccessFunction) {
-    return $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/teams/" + id,
+        url: "http://localhost:8090/games-results/game-teams-names/" + id,
         success: function (responseData) {
             onSuccessFunction(responseData);
         },
