@@ -13,11 +13,6 @@ function readFormFieldsValues(id) {
     const data = {
         id: id,
         name: document.getElementById("name").value,
-        goalsScored: document.getElementById("goalsScored").value,
-        goalsReceived: document.getElementById("goalsReceived").value,
-        victories: document.getElementById("victories").value,
-        defeats: document.getElementById("defeats").value,
-        draws: document.getElementById("draws").value,
     };
     const json = JSON.stringify(data);
     return json;
@@ -25,11 +20,6 @@ function readFormFieldsValues(id) {
 
 function setFormFieldsValues(data) {
     document.getElementById("name").setAttribute("value", data.name);
-    document.getElementById("goalsScored").setAttribute("value", data.goalsScored);
-    document.getElementById("goalsReceived").setAttribute("value", data.goalsReceived);
-    document.getElementById("victories").setAttribute("value", data.victories);
-    document.getElementById("defeats").setAttribute("value", data.defeats);
-    document.getElementById("draws").setAttribute("value", data.draws);
 }
 
 function openCreateForm() {

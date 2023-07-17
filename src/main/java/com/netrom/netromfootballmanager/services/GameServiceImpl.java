@@ -2,6 +2,7 @@ package com.netrom.netromfootballmanager.services;
 
 import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
+import com.netrom.netromfootballmanager.entities.daos.TeamDAO;
 import com.netrom.netromfootballmanager.repositories.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,5 +58,15 @@ public class GameServiceImpl implements GameService {
 
     public GameDAO findGameByGameResult(GameResultDAO gameResult) {
         return gameRepository.findFirstByGameResult(gameResult);
+    }
+
+    @Override
+    public List<GameDAO> findAllByTeamOne(TeamDAO team) {
+        return gameRepository.findAllByTeamOne(team);
+    }
+
+    @Override
+    public List<GameDAO> findAllByTeamTwo(TeamDAO team) {
+        return gameRepository.findAllByTeamTwo(team);
     }
 }

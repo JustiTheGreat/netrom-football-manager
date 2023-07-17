@@ -40,21 +40,6 @@ public class TeamServiceImpl implements TeamService {
         if (newDao.getName() != null && !newDao.getName().isBlank()) {
             teamDB.setName(newDao.getName());
         }
-        if (newDao.getGoalsScored() != null && newDao.getGoalsScored() >= 0) {
-            teamDB.setGoalsScored(newDao.getGoalsScored());
-        }
-        if (newDao.getGoalsReceived() != null && newDao.getGoalsReceived() >= 0) {
-            teamDB.setGoalsReceived(newDao.getGoalsReceived());
-        }
-        if (newDao.getVictories() != null && newDao.getVictories() >= 0) {
-            teamDB.setVictories(newDao.getVictories());
-        }
-        if (newDao.getDefeats() != null && newDao.getDefeats() >= 0) {
-            teamDB.setDefeats(newDao.getDefeats());
-        }
-        if (newDao.getDraws() != null && newDao.getDraws() >= 0) {
-            teamDB.setDraws(newDao.getDraws());
-        }
         if (newDao.getPlayers() != null) {
             teamDB.setPlayers(newDao.getPlayers());
         }

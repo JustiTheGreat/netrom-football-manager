@@ -147,7 +147,7 @@ function populateDataTable(responseData){
 function setSelectsData() {
     function setSelectData(selectId, data, valueFunction, defaultValue) {
         const select = document.getElementById(selectId);
-        select.innerHTML = `<option value="" selected>${defaultValue}</option>`;
+        select.innerHTML = `<option value>${defaultValue}</option>`;
         for (let i = 0; i < data.length; i++) {
             const option = document.createElement("option");
             option.value = data[i].id;
@@ -181,15 +181,14 @@ function setSelectsData() {
 function setFormFieldsValues(data) {
     $("#dateAndTimeInMillis").val(millisToFormattedDateAndTime(data.dateAndTimeInMillis));
         const v1=data.teamOneId.toString();
-        $('#teamOneId option:selected').attr("selected",null);
-        $(`#teamOneId option[value="${v1}"]`).attr('selected','selected');
-    //    $("#teamOneId").val(v1).change();
+        alert(v1);
+//    $(`#teamOneId option[textContent="${v1}"]`).attr('selected', true);
+    $("#teamOneId").value = Number(v1);
     $("#teamTwoId").attr("value", data.teamTwoId);
     $("#stadiumId").attr("value", data.stadiumId);
     $("#gameResultId").attr("value", data.gameResultId);
-//    $("#teamOneId").val(data.teamOneId.toString()).change();
 }
-
+//    $("#teamOneId").val(data.teamOneId.toString()).change();
 function readFormFieldsValues(id) {
     return data = {
         id: id,

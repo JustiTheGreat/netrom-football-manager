@@ -66,18 +66,42 @@ public class Mapper {
     }
 
     public TeamDTO DAOToDTO(TeamDAO teamDAO) {
-        return new TeamDTO(
+        TeamDTO teamDTO = new TeamDTO(
                 teamDAO.getId(),
                 teamDAO.getName(),
-                teamDAO.getGoalsScored(),
-                teamDAO.getGoalsReceived(),
-                teamDAO.getVictories(),
-                teamDAO.getDefeats(),
-                teamDAO.getDraws(),
                 teamDAO.getPlayersIds(),
                 teamDAO.getGamesAsTeamOneIds(),
-                teamDAO.getGamesAsTeamTwoIds()
+                teamDAO.getGamesAsTeamTwoIds(),
+                0,
+                0,
+                0,
+                0,
+                0
         );
+
+        gameService.findAllByTeamOne(teamDAO).forEach(gameDAO -> {
+            GameResultDAO gameResultDAO = gameDAO.getGameResult();
+            if (gameResultDAO != null) {
+                teamDTO.setGoalsScored(teamDTO.getGoalsScored() + gameResultDAO.getGoalsTeamOne());
+                teamDTO.setGoalsReceived(teamDTO.getGoalsReceived() + gameResultDAO.getGoalsTeamTwo());
+                teamDTO.setVictories(teamDTO.getVictories() + (gameResultDAO.getGoalsTeamOne() > gameResultDAO.getGoalsTeamTwo() ? 1 : 0));
+                teamDTO.setDefeats(teamDTO.getVictories() + (gameResultDAO.getGoalsTeamOne() < gameResultDAO.getGoalsTeamTwo() ? 1 : 0));
+                teamDTO.setDraws(teamDTO.getVictories() + (gameResultDAO.getGoalsTeamOne() == gameResultDAO.getGoalsTeamTwo() ? 1 : 0));
+            }
+        });
+
+        gameService.findAllByTeamOne(teamDAO).forEach(gameDAO -> {
+            GameResultDAO gameResultDAO = gameDAO.getGameResult();
+            if (gameResultDAO != null) {
+                teamDTO.setGoalsScored(teamDTO.getGoalsScored() + gameResultDAO.getGoalsTeamOne());
+                teamDTO.setGoalsReceived(teamDTO.getGoalsReceived() + gameResultDAO.getGoalsTeamTwo());
+                teamDTO.setVictories(teamDTO.getVictories() + (gameResultDAO.getGoalsTeamTwo() > gameResultDAO.getGoalsTeamOne() ? 1 : 0));
+                teamDTO.setDefeats(teamDTO.getVictories() + (gameResultDAO.getGoalsTeamTwo() < gameResultDAO.getGoalsTeamOne() ? 1 : 0));
+                teamDTO.setDraws(teamDTO.getVictories() + (gameResultDAO.getGoalsTeamTwo() == gameResultDAO.getGoalsTeamOne() ? 1 : 0));
+            }
+        });
+
+        return teamDTO;
     }
 
     public GameDAO DTOToDAO(GameDTO gameDTO) {
@@ -122,11 +146,6 @@ public class Mapper {
         return new TeamDAO(
                 teamDTO.getId(),
                 teamDTO.getName(),
-                teamDTO.getGoalsScored(),
-                teamDTO.getGoalsReceived(),
-                teamDTO.getVictories(),
-                teamDTO.getDefeats(),
-                teamDTO.getDraws(),
                 teamDTO.getPlayersIds() == null ? new ArrayList<>() : teamDTO.getPlayersIds().stream().map(playerId -> playerId == null ? null : playerService.getById(playerId)).collect(Collectors.toList()),
                 teamDTO.getGamesAsTeamOneIds() == null ? new ArrayList<>() : teamDTO.getGamesAsTeamOneIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList()),
                 teamDTO.getGamesAsTeamTwoIds() == null ? new ArrayList<>() : teamDTO.getGamesAsTeamTwoIds().stream().map(gameId -> gameId == null ? null : gameService.getById(gameId)).collect(Collectors.toList())

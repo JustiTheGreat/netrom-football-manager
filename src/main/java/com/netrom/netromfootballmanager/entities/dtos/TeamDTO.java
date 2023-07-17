@@ -15,6 +15,12 @@ public class TeamDTO {
 
     private String name;
 
+    private List<Long> playersIds;
+
+    private List<Long> gamesAsTeamOneIds;
+
+    private List<Long> gamesAsTeamTwoIds;
+
     private Integer goalsScored;
 
     private Integer goalsReceived;
@@ -24,10 +30,4 @@ public class TeamDTO {
     private Integer defeats;
 
     private Integer draws;
-
-    private List<Long> playersIds;
-
-    private List<Long> gamesAsTeamOneIds;
-
-    private List<Long> gamesAsTeamTwoIds;
 }

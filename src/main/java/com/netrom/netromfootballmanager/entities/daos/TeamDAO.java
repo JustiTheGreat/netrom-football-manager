@@ -22,21 +22,6 @@ public class TeamDAO {
     @Column
     private String name;
 
-    @Column
-    private Integer goalsScored;
-
-    @Column
-    private Integer goalsReceived;
-
-    @Column
-    private Integer victories;
-
-    @Column
-    private Integer defeats;
-
-    @Column
-    private Integer draws;
-
     @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
     private List<PlayerDAO> players;
 
