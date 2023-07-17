@@ -111,12 +111,15 @@ function getAllPlayers() {
                     '<button type="button" class="btn btn-danger btn-block" onclick="deletePlayer(this.parentElement.parentElement)">Delete</button>',
                 }
 
-                const request = getTeamById(responseData[i].teamId, function(response) {
-                    responseData[i].teamId = response.name;
-                });
-                requests.push(request);
+                if (responseData[i].teamId) {
+                    const request = getTeamById(responseData[i].teamId, function(response) {
+                        responseData[i].teamId = response.name;
+                    });
+                    requests.push(request);
+                }
             }
             $.when.apply(this, requests).done(function() {
+                $("#dataTable").bootstrapTable("destroy");
                 $("#dataTable").bootstrapTable({data: responseData});
             });
         },

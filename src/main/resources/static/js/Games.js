@@ -26,6 +26,24 @@ function getAllGames() {
 
 document.addEventListener("DOMContentLoaded", getAllGames());
 
+function millisToFormattedDateAndTime(millis) {
+    const date = new Date(millis)
+    const formattedDateAndTime = `${date.getFullYear()}/${date.getMonth()}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
+    return formattedDateAndTime;
+}
+
+function convertFormattedDateToMillis(formattedDateAndTime) {
+    if (!formattedDateAndTime) return null;
+    const date = formattedDateAndTime.split(" ")[0].split("/");
+    const year = date[0];
+    const month = date[1];
+    const day = date[2];
+    const time = formattedDateAndTime.split(" ")[1].split(":");
+    const hour = time[0];
+    const minutes = time[1];
+    return new Date(year, month, day, hour, minutes).getTime();
+}
+
 function getObjectId(tr) {
     return tr.getAttribute("data-uniqueid");
 }
@@ -41,6 +59,7 @@ function deleteRowData(tr) {
 function populateDataTable(responseData){
     const requests = [];
     for (let i = 0; i < responseData.length; i++) {
+        responseData[i].dateAndTimeInMillis = millisToFormattedDateAndTime(responseData[i].dateAndTimeInMillis);
         responseData[i] = {
             ...responseData[i],
             actions:
@@ -82,9 +101,8 @@ function populateDataTable(responseData){
         }
     }
     $.when.apply(this, requests).done(function() {
-    $("#dataTable").bootstrapTable("destroy");
+        $("#dataTable").bootstrapTable("destroy");
         $("#dataTable").bootstrapTable({data: responseData});
-
     });
 }
 
@@ -123,9 +141,7 @@ function setSelectsData() {
 }
 
 function setFormFieldsValues(data) {
-    const date = new Date(data.dateAndTimeInMillis)
-    const formattedDateAndTime = `${date.getFullYear()}/${date.getMonth()}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
-    $("#dateAndTimeInMillis").val(formattedDateAndTime);
+    $("#dateAndTimeInMillis").val(millisToFormattedDateAndTime(data.dateAndTimeInMillis));
         const v1=data.teamOneId.toString();
         $('#teamOneId option:selected').attr("selected",null);
         $(`#teamOneId option[value="${v1}"]`).attr('selected','selected');
@@ -137,25 +153,13 @@ function setFormFieldsValues(data) {
 }
 
 function readFormFieldsValues(id) {
-    function convertFormattedDateToMillis(formattedDateAndTime) {
-        if (!formattedDateAndTime) return null;
-        const date = formattedDateAndTime.split(" ")[0].split("/");
-        const year = date[0];
-        const month = date[1];
-        const day = date[2];
-        const time = formattedDateAndTime.split(" ")[1].split(":");
-        const hour = time[0];
-        const minutes = time[1];
-        return new Date(year, month, day, hour, minutes).getTime();
-    }
-    const dateAndTimeInMillis = convertFormattedDateToMillis(document.getElementById("dateAndTimeInMillis").value);
     return data = {
         id: id,
-        dateAndTimeInMillis: dateAndTimeInMillis,
-        teamOneId: document.getElementById("teamOneId").value?document.getElementById("teamOneId").value:null,
-        teamTwoId: document.getElementById("teamTwoId").value?document.getElementById("teamTwoId").value:null,
-        stadiumId: document.getElementById("stadiumId").value?document.getElementById("stadiumId").value:null,
-        gameResultId: document.getElementById("gameResultId").value?document.getElementById("gameResultId").value:null,
+        dateAndTimeInMillis: convertFormattedDateToMillis(document.getElementById("dateAndTimeInMillis").value),
+        teamOneId: document.getElementById("teamOneId").value ? document.getElementById("teamOneId").value : null,
+        teamTwoId: document.getElementById("teamTwoId").value ? document.getElementById("teamTwoId").value : null,
+        stadiumId: document.getElementById("stadiumId").value ? document.getElementById("stadiumId").value : null,
+        gameResultId: document.getElementById("gameResultId").value ? document.getElementById("gameResultId").value : null,
     };
 }
 

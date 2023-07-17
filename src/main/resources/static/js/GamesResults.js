@@ -106,6 +106,7 @@ function getAllGamesResults() {
             }
 
             $.when.apply(this, requests).done(function() {
+                $("#dataTable").bootstrapTable("destroy");
                 $("#dataTable").bootstrapTable({data: responseData});
             });
         },

@@ -89,6 +89,7 @@ function getAllStadiums() {
                     '<button type="button" class="btn btn-danger btn-block" onclick="deleteStadium(this.parentElement.parentElement)">Delete</button>',
                 }
             }
+            $("#dataTable").bootstrapTable("destroy");
             $("#dataTable").bootstrapTable({data: responseData});
         },
         error: function (error) {
