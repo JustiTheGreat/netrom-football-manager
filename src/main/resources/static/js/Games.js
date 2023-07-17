@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", getAllGames());
 
 function millisToFormattedDateAndTime(millis) {
     const date = new Date(millis)
-    const formattedDateAndTime = `${date.getFullYear()}/${date.getMonth()}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
+    const formattedDateAndTime = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
     return formattedDateAndTime;
 }
 
@@ -36,12 +36,12 @@ function convertFormattedDateToMillis(formattedDateAndTime) {
     if (!formattedDateAndTime) return null;
     const date = formattedDateAndTime.split(" ")[0].split("/");
     const year = date[0];
-    const month = date[1];
+    const month = (Number(date[1]) - 1).toString();
     const day = date[2];
     const time = formattedDateAndTime.split(" ")[1].split(":");
     const hour = time[0];
     const minutes = time[1];
-    return new Date(year, month, day, hour, minutes).getTime();
+    return new Date(year, month, day, hour, minutes).getTime();;
 }
 
 function getObjectId(tr) {
