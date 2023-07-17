@@ -10,7 +10,7 @@ function httpRequest(obj) {
         type: obj.requestType,
         url: obj.url,
         headers: obj.headers,
-        json: obj.json,
+        data: obj.json,
         success: obj.onSuccessFunction,
         error: (error) => console.log(`Error ${error}`),
     });
@@ -49,10 +49,46 @@ function getObjectId(tr) {
 }
 
 function deleteRowData(tr) {
-    return httpRequest({
+    httpRequest({
         url: gamesURL + "/" + getObjectId(tr),
         requestType: "DELETE",
         onSuccessFunction: getAllGames,
+    });
+}
+
+function randomize(tr) {
+    let gameResultId;
+    let game;
+    const requests = [];
+    const maxNumberOfGoals = 10;
+    const gameResultData = {
+        goalsTeamOne: Math.floor(Math.random() * maxNumberOfGoals),
+        goalsTeamTwo: Math.floor(Math.random() * maxNumberOfGoals),
+    };
+    let request = httpRequest({
+        url: gamesResultsURL,
+        requestType: "POST",
+        headers: headerForSendingJson,
+        json: JSON.stringify(gameResultData),
+        onSuccessFunction: responseData => gameResultId = responseData.id,
+    });
+    requests.push(request);
+    request = httpRequest({
+        url: gamesURL + "/" + getObjectId(tr),
+        requestType: "GET",
+        onSuccessFunction: responseData => game = responseData,
+    });
+    requests.push(request);
+
+    $.when.apply(this, requests).done(() => {
+        game.gameResultId = gameResultId;
+        httpRequest({
+            url: gamesURL + "/" + getObjectId(tr),
+            requestType: "PUT",
+            headers: headerForSendingJson,
+            json: JSON.stringify(game),
+            onSuccessFunction: getAllGames,
+        });
     });
 }
 
@@ -64,7 +100,9 @@ function populateDataTable(responseData){
             ...responseData[i],
             actions:
             '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-            '<button type="button" class="btn btn-danger btn-block" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
+            '<button type="button" class="btn btn-danger btn-block" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>' +
+            (responseData[i].gameResultId ? '' :
+            '<button type="button" class="btn btn-warning btn-block" onclick="randomize(this.parentElement.parentElement)">Randomize game result</button>'),
         };
 
         if (responseData[i].teamOneId) {
