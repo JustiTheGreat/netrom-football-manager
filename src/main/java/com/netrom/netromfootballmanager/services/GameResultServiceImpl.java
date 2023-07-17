@@ -2,7 +2,6 @@ package com.netrom.netromfootballmanager.services;
 
 import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
-import com.netrom.netromfootballmanager.repositories.GameRepository;
 import com.netrom.netromfootballmanager.repositories.GameResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,7 @@ public class GameResultServiceImpl implements GameResultService {
     private GameResultRepository gameResultRepository;
 
     @Autowired
-    private GameRepository gameRepository;
+    private GameService gameService;
 
     @Override
     public GameResultDAO create(GameResultDAO dao) {
@@ -58,7 +57,7 @@ public class GameResultServiceImpl implements GameResultService {
         GameDAO game = gameResultDAO.getGame();
         if (game != null) {
             game.setGameResult(null);
-            gameRepository.save(game);
+            gameService.create(game);
         }
     }
 }

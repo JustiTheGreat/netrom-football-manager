@@ -1,8 +1,6 @@
 package com.netrom.netromfootballmanager.services;
 
 import com.netrom.netromfootballmanager.entities.daos.TeamDAO;
-import com.netrom.netromfootballmanager.repositories.GameRepository;
-import com.netrom.netromfootballmanager.repositories.PlayerRepository;
 import com.netrom.netromfootballmanager.repositories.TeamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,10 +14,10 @@ public class TeamServiceImpl implements TeamService {
     private TeamRepository teamRepository;
 
     @Autowired
-    private PlayerRepository playerRepository;
+    private PlayerService playerService;
 
     @Autowired
-    private GameRepository gameRepository;
+    private GameService gameService;
 
     @Override
     public TeamDAO create(TeamDAO dao) {
@@ -80,19 +78,19 @@ public class TeamServiceImpl implements TeamService {
         teamDAO.getPlayers().forEach(player -> {
             if (player != null) {
                 player.setTeam(null);
-                playerRepository.save(player);
+                playerService.create(player);
             }
         });
         teamDAO.getGamesAsTeamOne().forEach(game -> {
             if (game != null) {
                 game.setTeamOne(null);
-                gameRepository.save(game);
+                gameService.create(game);
             }
         });
         teamDAO.getGamesAsTeamTwo().forEach(game -> {
             if (game != null) {
                 game.setTeamTwo(null);
-                gameRepository.save(game);
+                gameService.create(game);
             }
         });
     }
