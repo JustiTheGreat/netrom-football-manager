@@ -87,8 +87,8 @@ function getAllTeams() {
                 responseData[i] = {
                     ...responseData[i],
                     actions:
-                    '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block" onclick="deleteTeam(this.parentElement.parentElement)">Delete</button>',
+                    '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+                    '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
                 }
             }
             $("#dataTable").bootstrapTable("destroy");

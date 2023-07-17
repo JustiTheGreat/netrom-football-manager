@@ -5,7 +5,7 @@ function getObjectId(tr) {
     return id;
 }
 
-function deletePlayer(tr) {
+function deleteRowData(tr) {
     deletePlayerById(getObjectId(tr));
 }
 
@@ -107,8 +107,8 @@ function getAllPlayers() {
                 responseData[i] = {
                     ...responseData[i],
                     actions:
-                    '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block" onclick="deletePlayer(this.parentElement.parentElement)">Delete</button>',
+                    '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+                    '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
                 }
 
                 if (responseData[i].teamId) {

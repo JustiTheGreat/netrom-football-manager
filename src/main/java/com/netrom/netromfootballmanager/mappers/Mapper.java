@@ -90,7 +90,7 @@ public class Mapper {
             }
         });
 
-        gameService.findAllByTeamOne(teamDAO).forEach(gameDAO -> {
+        gameService.findAllByTeamTwo(teamDAO).forEach(gameDAO -> {
             GameResultDAO gameResultDAO = gameDAO.getGameResult();
             if (gameResultDAO != null) {
                 teamDTO.setGoalsScored(teamDTO.getGoalsScored() + gameResultDAO.getGoalsTeamOne());

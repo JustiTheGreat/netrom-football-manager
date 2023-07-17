@@ -16,15 +16,38 @@ function httpRequest(obj) {
     });
 }
 
-function getAllGames() {
-    return httpRequest({
+function getAllGames(th) {
+    let obj;
+    if (th && th.textContent) {
+        let columnName = th.textContent;
+        obj = {
+            field: th.id,
+            sortDir: columnName.endsWith("↑")?1:columnName.endsWith("↓")?-1:0,
+        };
+        th.textContent = sortDir===0?th.textContent.replaceAll("↓", "")
+            :sortDir===1?th.textContent + "↑"
+            :sortDir===-1?th.textContent.replaceAll("↑", "↓")
+            :null;
+    }
+
+    const json = JSON.stringify(obj);
+
+    httpRequest({
         url: gamesURL,
         requestType: "GET",
+        headers: headerForSendingJson,
+        data: json,
         onSuccessFunction: populateDataTable,
     });
 }
 
-document.addEventListener("DOMContentLoaded", getAllGames());
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("DateAndTime").onclick = () => getAllGames(document.getElementById("DateAndTime"));
+    document.getElementById("TeamOne").onclick = () => getAllGames(document.getElementById("TeamOne"));
+    document.getElementById("TeamTwo").onclick = () => getAllGames(document.getElementById("TeamTwo"));
+    document.getElementById("Stadium").onclick = () => getAllGames(document.getElementById("Stadium"));
+    getAllGames();
+});
 
 function millisToFormattedDateAndTime(millis) {
     const date = new Date(millis)
@@ -99,10 +122,10 @@ function populateDataTable(responseData){
         responseData[i] = {
             ...responseData[i],
             actions:
-            '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-            '<button type="button" class="btn btn-danger btn-block" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>' +
+            '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+            '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>' +
             (responseData[i].gameResultId ? '' :
-            '<button type="button" class="btn btn-warning btn-block" onclick="randomize(this.parentElement.parentElement)">Randomize game result</button>'),
+            '<button type="button" class="btn btn-warning btn-block actionButton" onclick="randomize(this.parentElement.parentElement)">Randomize game result</button>'),
         };
 
         if (responseData[i].teamOneId) {
@@ -222,13 +245,11 @@ function openCreateForm() {
             alert("Wrong date and time value!");
             return;
         }
-        const json = JSON.stringify(data);
-        alert(json);
         httpRequest({
             url: gamesURL,
             requestType: "POST",
             headers: headerForSendingJson,
-            json: json,
+            json: JSON.stringify(data),
             onSuccessFunction: getAllGames,
         });
         $("#form").modal("hide");
@@ -258,13 +279,11 @@ function openEditForm(tr) {
             alert("Wrong date and time value!");
             return;
         }
-        const json = JSON.stringify(data);
-        alert(json);
         httpRequest({
             url: gamesURL + "/" + id,
             requestType: "PUT",
             headers: headerForSendingJson,
-            json: json,
+            json: JSON.stringify(data),
             onSuccessFunction: getAllGames,
         });
         $("#form").modal("hide");

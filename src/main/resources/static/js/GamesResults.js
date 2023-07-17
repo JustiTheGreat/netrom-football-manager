@@ -5,7 +5,7 @@ function getObjectId(tr) {
     return id;
 }
 
-function deleteGameResult(tr) {
+function deleteRowData(tr) {
     deleteGameResultById(getObjectId(tr));
 }
 
@@ -88,8 +88,8 @@ function getAllGamesResults() {
                     teamOneName: null,
                     teamTwoName: null,
                     actions:
-                    '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block" onclick="deleteGameResult(this.parentElement.parentElement)">Delete</button>',
+                    '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+                    '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
                 }
                 const request = getGameTeamsNamesByGameResult(responseData[i].id, function(response) {
                     responseData[i].teamOneName = response.teamOneName;
@@ -99,7 +99,7 @@ function getAllGamesResults() {
 //                        ...response,
 //                        actions:
 //                        '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-//                        '<button type="button" class="btn btn-danger btn-block" onclick="deleteGameResult(this.parentElement.parentElement)">Delete</button>',
+//                        '<button type="button" class="btn btn-danger btn-block" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
 //                    };
                 });
                 requests.push(request);
