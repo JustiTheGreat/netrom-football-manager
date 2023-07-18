@@ -4,16 +4,21 @@ import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
 import com.netrom.netromfootballmanager.entities.daos.TeamDAO;
 import com.netrom.netromfootballmanager.repositories.GameRepository;
+import com.netrom.netromfootballmanager.repositories.GameResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class GameServiceImpl implements GameService {
 
     @Autowired
     private GameRepository gameRepository;
+
+    @Autowired
+    private GameResultRepository gameResultRepository;
 
     @Override
     public GameDAO create(GameDAO game) {
@@ -68,5 +73,16 @@ public class GameServiceImpl implements GameService {
     @Override
     public List<GameDAO> findAllByTeamTwo(TeamDAO team) {
         return gameRepository.findAllByTeamTwo(team);
+    }
+
+    @Override
+    public GameDAO generateRandomGameResult(long id) {
+        Random random = new Random();
+        GameResultDAO gameResultDAO = new GameResultDAO(null, random.nextInt(11), random.nextInt(11), null);
+        gameResultDAO = gameResultRepository.save(gameResultDAO);
+        GameDAO gameDAO = gameRepository.getReferenceById(id);
+        gameDAO.setGameResult(gameResultDAO);
+        update(id, gameDAO);
+        return update(id, gameDAO);
     }
 }

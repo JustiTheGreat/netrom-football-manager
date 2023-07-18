@@ -49,6 +49,17 @@ document.addEventListener("DOMContentLoaded", () => {
     getAllGames();
 });
 
+function toggleResultCreation(visibility) {
+    if (visibility===true || visibility===false) {
+        document.getElementById("gameResultId").checked = visibility;
+    }
+    const hidden = !document.getElementById("gameResultId").checked;
+    document.getElementById("goalsTeamOneLabel").hidden = hidden;
+    document.getElementById("goalsTeamOne").hidden = hidden;
+    document.getElementById("goalsTeamTwoLabel").hidden = hidden;
+    document.getElementById("goalsTeamTwo").hidden = hidden;
+}
+
 function millisToFormattedDateAndTime(millis) {
     const date = new Date(millis)
     const formattedDateAndTime = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
@@ -80,38 +91,10 @@ function deleteRowData(tr) {
 }
 
 function randomize(tr) {
-    let gameResultId;
-    let game;
-    const requests = [];
-    const maxNumberOfGoals = 10;
-    const gameResultData = {
-        goalsTeamOne: Math.floor(Math.random() * maxNumberOfGoals),
-        goalsTeamTwo: Math.floor(Math.random() * maxNumberOfGoals),
-    };
-    let request = httpRequest({
-        url: gamesResultsURL,
-        requestType: "POST",
-        headers: headerForSendingJson,
-        json: JSON.stringify(gameResultData),
-        onSuccessFunction: responseData => gameResultId = responseData.id,
-    });
-    requests.push(request);
-    request = httpRequest({
-        url: gamesURL + "/" + getObjectId(tr),
-        requestType: "GET",
-        onSuccessFunction: responseData => game = responseData,
-    });
-    requests.push(request);
-
-    $.when.apply(this, requests).done(() => {
-        game.gameResultId = gameResultId;
-        httpRequest({
-            url: gamesURL + "/" + getObjectId(tr),
-            requestType: "PUT",
-            headers: headerForSendingJson,
-            json: JSON.stringify(game),
-            onSuccessFunction: getAllGames,
-        });
+    httpRequest({
+        url: gamesURL + "/random-game-result/" + getObjectId(tr),
+        requestType: "PUT",
+        onSuccessFunction: getAllGames,
     });
 }
 
@@ -193,33 +176,30 @@ function setSelectsData() {
         requestType: "GET",
         onSuccessFunction: response => setSelectData("stadiumId", response, obj => obj.name, "No stadium"),
     });
-
-    httpRequest({
-        url: gamesResultsURL,
-        requestType: "GET",
-        onSuccessFunction: response => setSelectData("gameResultId", response, obj => obj.goalsTeamOne + ":" + obj.goalsTeamTwo, "No game result"),
-    });
 }
 
 function setFormFieldsValues(data) {
     $("#dateAndTimeInMillis").val(millisToFormattedDateAndTime(data.dateAndTimeInMillis));
-        const v1=data.teamOneId.toString();
-        alert(v1);
-//    $(`#teamOneId option[textContent="${v1}"]`).attr('selected', true);
-    $("#teamOneId").value = Number(v1);
-    $("#teamTwoId").attr("value", data.teamTwoId);
-    $("#stadiumId").attr("value", data.stadiumId);
-    $("#gameResultId").attr("value", data.gameResultId);
+    $("#teamOneId").val(data.teamOneId).change();
+    $("#teamTwoId").val(data.teamTwoId).change();
+    $("#stadiumId").val(data.stadiumId).change();
+    $("#gameResultId").prop("disabled", data.gameResultId && document.getElementById("formTitle").textContent == "Edit game");
+    $("#gameResultId").prop("name", data.gameResultId);
+    toggleResultCreation(data.gameResultId ? true : false);
+    $("#goalsTeamOne").val(data.goalsTeamOne ? data.goalsTeamOne : 0);
+    $("#goalsTeamTwo").val(data.goalsTeamTwo ? data.goalsTeamTwo : 0);
 }
-//    $("#teamOneId").val(data.teamOneId.toString()).change();
+
 function readFormFieldsValues(id) {
     return data = {
         id: id,
-        dateAndTimeInMillis: convertFormattedDateToMillis(document.getElementById("dateAndTimeInMillis").value),
-        teamOneId: document.getElementById("teamOneId").value ? document.getElementById("teamOneId").value : null,
-        teamTwoId: document.getElementById("teamTwoId").value ? document.getElementById("teamTwoId").value : null,
-        stadiumId: document.getElementById("stadiumId").value ? document.getElementById("stadiumId").value : null,
-        gameResultId: document.getElementById("gameResultId").value ? document.getElementById("gameResultId").value : null,
+        dateAndTimeInMillis: convertFormattedDateToMillis($("#dateAndTimeInMillis").val()),
+        teamOneId: $("#teamOneId").val() ? $("#teamOneId").val() : null,
+        teamTwoId: $("#teamTwoId").val() ? $("#teamTwoId").val() : null,
+        stadiumId: $("#stadiumId").val() ? $("#stadiumId").val() : null,
+        gameResultId: $("#gameResultId").prop("name") ? $("#gameResultId").prop("name") : null,
+        goalsTeamOne: $("#goalsTeamOne").val() ? $("#goalsTeamOne").val() : null,
+        goalsTeamTwo: $("#goalsTeamTwo").val() ? $("#goalsTeamTwo").val() : null,
     };
 }
 
@@ -230,10 +210,8 @@ function openCreateForm() {
 
     const data = {
         dateAndTimeInMillis: Date.now(),
-        teamOneId: "",
-        teamTwoId: "",
-        stadiumId: "",
-        gameResultId: "",
+        goalsTeamOne: 0,
+        goalsTeamTwo: 0,
     };
     setFormFieldsValues(data);
 
@@ -241,17 +219,37 @@ function openCreateForm() {
     finishButton.textContent = "Create";
     finishButton.onclick = () => {
         const data = readFormFieldsValues();
-        if(!data.dateAndTimeInMillis) {
-            alert("Wrong date and time value!");
+        const errorString = !data.dateAndTimeInMillis || !data.teamOneId || !data.teamTwoId || !data.stadiumId ? "Please complete all necessary fields!\n" : ""
+            + data.teamOneId == data.teamTwoId ? "Please select different teams!\n" : ""
+            + data.goalsTeamOne < 0 || data.goalsTeamTwo < 0 || !Number.isInteger(Number(data.goalsTeamOne)) || !Number.isInteger(Number(data.goalsTeamTwo))? "Please select a sound number of goals!\n" : "";
+        if (errorString) {
+            alert(errorString);
             return;
         }
-        httpRequest({
+        const requests = [];
+        let createGameResultRequest;
+        if (document.getElementById("gameResultId").checked) {
+            const gameResult = {
+                goalsTeamOne: data.goalsTeamOne,
+                goalsTeamTwo: data.goalsTeamTwo,
+            };
+            createGameResultRequest = httpRequest({
+                url: gamesResultsURL,
+                requestType: "POST",
+                headers: headerForSendingJson,
+                json: JSON.stringify(gameResult),
+                onSuccessFunction: (responseData) => data.gameResultId = responseData.id,
+            });
+            requests.push(createGameResultRequest);
+        }
+
+        $.when.apply(this, requests).done(() => httpRequest({
             url: gamesURL,
             requestType: "POST",
             headers: headerForSendingJson,
             json: JSON.stringify(data),
             onSuccessFunction: getAllGames,
-        });
+        }));
         $("#form").modal("hide");
     };
 
@@ -265,27 +263,75 @@ function openEditForm(tr) {
 
     const id = getObjectId(tr);
 
-    httpRequest({
+    const set = httpRequest({
         url: gamesURL + "/" + id,
         requestType: "GET",
-        onSuccessFunction: setFormFieldsValues,
+        onSuccessFunction: (responseData) => {
+            if (responseData.gameResultId) {
+                httpRequest({
+                    url: gamesResultsURL + "/" + responseData.gameResultId,
+                    requestType: "GET",
+                    onSuccessFunction: (response) => {
+                        const data = {
+                            ...responseData,
+                            goalsTeamOne: response.goalsTeamOne,
+                            goalsTeamTwo: response.goalsTeamTwo,
+                        };
+                        setFormFieldsValues(data);
+                    }
+                });
+            } else setFormFieldsValues(responseData);
+        }
     });
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Update";
     finishButton.onclick = () => {
-        const data = readFormFieldsValues(id);
-        if(!data.dateAndTimeInMillis || data.dateAndTimeInMillis < 0) {
-            alert("Wrong date and time value!");
+        const data = readFormFieldsValues();
+        data.id = id;
+        const errorString = !data.dateAndTimeInMillis || !data.teamOneId || !data.teamTwoId || !data.stadiumId ? "Please complete all necessary fields!\n" : ""
+            + data.teamOneId == data.teamTwoId ? "Please select different teams!\n" : ""
+            + data.goalsTeamOne < 0 || data.goalsTeamTwo < 0 ? "Please select positive numbers of goals!\n" : "";
+        if (errorString) {
+            alert(errorString);
             return;
         }
-        httpRequest({
+
+        const requests = [];
+        let gameResultRequest;
+        if (document.getElementById("gameResultId").checked) {
+            const gameResult = {
+                id: data.gameResultId,
+                goalsTeamOne: data.goalsTeamOne,
+                goalsTeamTwo: data.goalsTeamTwo,
+            };
+            if (data.gameResultId) {
+                gameResultRequest = httpRequest({
+                    url: gamesResultsURL + "/" + data.gameResultId,
+                    requestType: "PUT",
+                    headers: headerForSendingJson,
+                    json: JSON.stringify(gameResult),
+                    onSuccessFunction: (responseData) => data.gameResultId = responseData.id,
+                });
+            } else if (!data.gameResultId) {
+                gameResultRequest = httpRequest({
+                    url: gamesResultsURL + "/" + data.gameResultId,
+                    requestType: "POST",
+                    headers: headerForSendingJson,
+                    json: JSON.stringify(gameResult),
+                    onSuccessFunction: (responseData) => data.gameResultId = responseData.id,
+                });
+            }
+            requests.push(gameResultRequest);
+        }
+
+        $.when.apply(this, requests).done(() => httpRequest({
             url: gamesURL + "/" + id,
             requestType: "PUT",
             headers: headerForSendingJson,
             json: JSON.stringify(data),
             onSuccessFunction: getAllGames,
-        });
+        }));
         $("#form").modal("hide");
     };
 

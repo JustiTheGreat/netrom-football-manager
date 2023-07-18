@@ -65,14 +65,24 @@
             <div id="create-dialog-body" class="modal-body">
                 <label class="form-label MyLabel">Date and time</label>
                 <input class="form-control MyInput" type="datetime-local" id="dateAndTimeInMillis" placeholder="Select date and time">
+                <br>
                 <label class="form-label MyLabel">Team one</label>
                 <select class="form-select MyInput" id="teamOneId"></select>
+                <br>
                 <label class="form-label MyLabel">Team two</label>
                 <select class="form-select MyInput" id="teamTwoId"></select>
+                <br>
                 <label class="form-label MyLabel">Stadium</label>
                 <select class="form-select MyInput" id="stadiumId"></select>
-                <label class="form-label MyLabel">Game result</label>
-                <select class="form-select MyInput" id="gameResultId"></select>
+                <br>
+                <input class="form-check-input" type="checkbox" id="gameResultId" onclick="toggleResultCreation()">
+                <label class="form-check-label">Enter game result</label>
+                <br>
+                <label class="form-label MyLabel" id="goalsTeamOneLabel" hidden>Team one goals</label>
+                <input class="form-control MyInput" type="number" id="goalsTeamOne" min="0" hidden/>
+                <br>
+                <label class="form-label MyLabel" id="goalsTeamTwoLabel" hidden>Team two goals</label>
+                <input class="form-control MyInput" type="number" id="goalsTeamTwo" min="0" hidden/>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" id="dialogFinishButton"></button>

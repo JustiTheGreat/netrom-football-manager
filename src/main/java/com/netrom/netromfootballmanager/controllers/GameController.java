@@ -82,4 +82,17 @@ public class GameController {
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @PutMapping("random-game-result/{id}")
+    public ResponseEntity<GameDTO> generateRandomGameResult(@PathVariable("id") long id) {
+        try {
+            gameService.getById(id);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        GameDAO resultDB = gameService.generateRandomGameResult(id);
+        if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        GameDTO result = mapper.DAOToDTO(resultDB);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
 }
