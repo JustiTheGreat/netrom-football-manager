@@ -1,6 +1,5 @@
 package com.netrom.netromfootballmanager.services;
 
-import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
 
 import java.util.List;
@@ -18,6 +17,4 @@ public interface GameResultService {
     void deleteById(long id);
 
     void removeReferences(long id);
-
-    GameResultDAO findFirstByGame(GameDAO game);
 }

@@ -61,7 +61,7 @@ function toggleResultCreation(visibility) {
 }
 
 function millisToFormattedDateAndTime(millis) {
-    const date = new Date(millis)
+    const date = new Date(millis);
     const formattedDateAndTime = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
     return formattedDateAndTime;
 }
@@ -144,7 +144,7 @@ function populateDataTable(responseData){
             requests.push(request);
         }
     }
-    $.when.apply(this, requests).done(function() {
+    $.when.apply(this, requests).done(() => {
         $("#dataTable").bootstrapTable("destroy");
         $("#dataTable").bootstrapTable({data: responseData});
     });

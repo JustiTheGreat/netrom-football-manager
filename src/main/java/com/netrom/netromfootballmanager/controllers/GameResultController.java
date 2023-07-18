@@ -2,8 +2,8 @@ package com.netrom.netromfootballmanager.controllers;
 
 import com.netrom.netromfootballmanager.entities.daos.GameDAO;
 import com.netrom.netromfootballmanager.entities.daos.GameResultDAO;
+import com.netrom.netromfootballmanager.entities.dtos.GameResultComplementaryDataDTO;
 import com.netrom.netromfootballmanager.entities.dtos.GameResultDTO;
-import com.netrom.netromfootballmanager.entities.dtos.GameTeamsNamesDTO;
 import com.netrom.netromfootballmanager.mappers.Mapper;
 import com.netrom.netromfootballmanager.services.GameResultService;
 import com.netrom.netromfootballmanager.services.GameService;
@@ -91,16 +91,19 @@ public class GameResultController {
     }
 
     @CrossOrigin
-    @GetMapping("/game-teams-names/{id}")
-    public ResponseEntity<GameTeamsNamesDTO> getGameTeamsNamesByGameResult(@PathVariable("id") long id) {
-        GameResultDAO gameResultDAO = new GameResultDAO(id, null, null, null);
-        GameDAO resultDB = gameService.findGameByGameResult(gameResultDAO);
-        if (resultDB == null) {
+    @GetMapping("/complementary-data/{id}")
+    public ResponseEntity<GameResultComplementaryDataDTO> getGameResultComplementaryData(@PathVariable("id") long id) {
+        GameResultDAO gameResultDAO;
+        try {
+            gameResultDAO = gameResultService.getById(id);
+        } catch (EntityNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        String teamOneName = resultDB.getTeamOne() == null ? null : resultDB.getTeamOne().getName();
-        String teamTwoName = resultDB.getTeamTwo() == null ? null : resultDB.getTeamTwo().getName();
-        GameTeamsNamesDTO result = new GameTeamsNamesDTO(teamOneName, teamTwoName);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        GameDAO gameDAO = gameResultDAO.getGame();
+        GameResultComplementaryDataDTO gameResultComplementaryDataDTO = new GameResultComplementaryDataDTO(
+                gameDAO == null ? null : gameDAO.getDateAndTimeInMillis(),
+                gameDAO == null ? null : gameDAO.getTeamOne() == null ? null : gameDAO.getTeamOne().getName(),
+                gameDAO == null ? null : gameDAO.getTeamTwo() == null ? null : gameDAO.getTeamTwo().getName());
+        return new ResponseEntity<>(gameResultComplementaryDataDTO, HttpStatus.OK);
     }
 }

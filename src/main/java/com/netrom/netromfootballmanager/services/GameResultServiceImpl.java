@@ -60,9 +60,4 @@ public class GameResultServiceImpl implements GameResultService {
             gameService.create(game);
         }
     }
-
-    @Override
-    public GameResultDAO findFirstByGame(GameDAO game) {
-        return gameResultRepository.findFirstByGame(game);
-    }
 }

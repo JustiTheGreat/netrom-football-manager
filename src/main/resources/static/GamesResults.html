@@ -32,15 +32,12 @@
     </div>
 </nav>
 
-<div id="createButtonDiv">
-    <button type="button" class="btn btn-primary" onclick="openCreateForm()">Create game result</button>
-</div>
-
 <table class="table table-dark table-striped table-hover" id="dataTable" data-unique-id="id">
     <caption>Games results</caption>
     <thead>
     <tr>
         <th scope="col" data-field="id" data-visible="false">#</th>
+        <th scope="col" data-field="dateAndTimeInMillis">Date and time</th>
         <th scope="col" data-field="teamOneName">Team One Name</th>
         <th scope="col" data-field="goalsTeamOne">Team One Goals</th>
         <th scope="col" data-field="teamTwoName">Team Two Name</th>

@@ -61,10 +61,6 @@ public class GameServiceImpl implements GameService {
         gameRepository.deleteById(gameId);
     }
 
-    public GameDAO findGameByGameResult(GameResultDAO gameResult) {
-        return gameRepository.findFirstByGameResult(gameResult);
-    }
-
     @Override
     public List<GameDAO> findAllByTeamOne(TeamDAO team) {
         return gameRepository.findAllByTeamOne(team);

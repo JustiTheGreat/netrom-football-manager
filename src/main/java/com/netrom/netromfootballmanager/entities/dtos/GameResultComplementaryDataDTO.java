@@ -7,7 +7,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class GameTeamsNamesDTO {
+public class GameResultComplementaryDataDTO {
+
+    private Long dateAndTimeInMillis;
 
     private String teamOneName;
 
