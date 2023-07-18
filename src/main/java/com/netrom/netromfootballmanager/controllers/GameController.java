@@ -83,7 +83,7 @@ public class GameController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("random-game-result/{id}")
+    @PutMapping("/random-game-result/{id}")
     public ResponseEntity<GameDTO> generateRandomGameResult(@PathVariable("id") long id) {
         try {
             gameService.getById(id);
@@ -94,5 +94,13 @@ public class GameController {
         if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         GameDTO result = mapper.DAOToDTO(resultDB);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/sorted")
+    public ResponseEntity<List<GameDTO>> getSortedGamesList() {
+        List<GameDAO> resultDB = gameService.getSortedList();
+        if (resultDB == null) return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        List<GameDTO> result = resultDB.stream().map(game -> mapper.DAOToDTO(game)).collect(Collectors.toList());
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

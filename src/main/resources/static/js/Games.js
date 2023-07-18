@@ -17,35 +17,35 @@ function httpRequest(obj) {
 }
 
 function getAllGames(th) {
-    let obj;
-    if (th && th.textContent) {
-        let columnName = th.textContent;
-        obj = {
-            field: th.id,
-            sortDir: columnName.endsWith("↑")?1:columnName.endsWith("↓")?-1:0,
-        };
-        th.textContent = sortDir===0?th.textContent.replaceAll("↓", "")
-            :sortDir===1?th.textContent + "↑"
-            :sortDir===-1?th.textContent.replaceAll("↑", "↓")
-            :null;
-    }
-
-    const json = JSON.stringify(obj);
+//    let obj;
+//    if (th && th.textContent) {
+//        let columnName = th.textContent;
+//        obj = {
+//            field: th.id,
+//            sortDir: columnName.endsWith("↑")?1:columnName.endsWith("↓")?-1:0,
+//        };
+//        th.textContent = sortDir===0?th.textContent.replaceAll("↓", "")
+//            :sortDir===1?th.textContent + "↑"
+//            :sortDir===-1?th.textContent.replaceAll("↑", "↓")
+//            :null;
+//    }
+//
+//    const json = JSON.stringify(obj);
 
     httpRequest({
         url: gamesURL,
         requestType: "GET",
-        headers: headerForSendingJson,
-        data: json,
+//        headers: headerForSendingJson,
+//        data: json,
         onSuccessFunction: populateDataTable,
     });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("DateAndTime").onclick = () => getAllGames(document.getElementById("DateAndTime"));
-    document.getElementById("TeamOne").onclick = () => getAllGames(document.getElementById("TeamOne"));
-    document.getElementById("TeamTwo").onclick = () => getAllGames(document.getElementById("TeamTwo"));
-    document.getElementById("Stadium").onclick = () => getAllGames(document.getElementById("Stadium"));
+//    document.getElementById("DateAndTime").onclick = () => getAllGames(document.getElementById("DateAndTime"));
+//    document.getElementById("TeamOne").onclick = () => getAllGames(document.getElementById("TeamOne"));
+//    document.getElementById("TeamTwo").onclick = () => getAllGames(document.getElementById("TeamTwo"));
+//    document.getElementById("Stadium").onclick = () => getAllGames(document.getElementById("Stadium"));
     getAllGames();
 });
 

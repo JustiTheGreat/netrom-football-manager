@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -78,7 +79,19 @@ public class GameServiceImpl implements GameService {
         gameResultDAO = gameResultRepository.save(gameResultDAO);
         GameDAO gameDAO = gameRepository.getReferenceById(id);
         gameDAO.setGameResult(gameResultDAO);
-        update(id, gameDAO);
-        return update(id, gameDAO);
+        return gameRepository.save(gameDAO);
+    }
+
+    @Override
+    public List<GameDAO> getSortedList() {
+        List<GameDAO> gameDAOList = gameRepository.findAll();
+        return gameDAOList.stream()
+                .sorted((gameDAO1, gameDAO2) ->
+                    gameDAO1.getGameResult() == null && gameDAO2.getGameResult() == null
+                            || gameDAO1.getGameResult() != null && gameDAO2.getGameResult() != null
+                            ? gameDAO1.getDateAndTimeInMillis().compareTo(gameDAO2.getDateAndTimeInMillis())
+                            : gameDAO1.getGameResult() == null && gameDAO2.getGameResult() != null ? -1
+                            : 1)
+                .collect(Collectors.toList());
     }
 }

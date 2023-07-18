@@ -22,4 +22,6 @@ public interface GameService {
     List<GameDAO> findAllByTeamTwo(TeamDAO team);
 
     GameDAO generateRandomGameResult(long id);
+
+    List<GameDAO> getSortedList();
 }
