@@ -62,9 +62,11 @@
             </div>
             <div id="create-dialog-body" class="modal-body">
                 <label class="form-label MyLabel">Name</label>
-                <input class="form-control MyInput" type="text" id="name" value="" placeholder="Player's name">
+                <input class="form-control MyInput" type="text" id="name" placeholder="Player's name">
+                <br>
                 <label class="form-label MyLabel">Goals scored</label>
-                <input class="form-control MyInput" type="number" id="goalsScored" value="0" min="0" max="9999"/>
+                <input class="form-control MyInput" type="number" id="goalsScored" min="0"/>
+                <br>
                 <label class="form-label MyLabel">Role</label>
                 <select class="form-select MyInput" id="role">
                     <option value="DEFENDER">DEFENDER</option>
@@ -72,11 +74,12 @@
                     <option value="MIDFIELDER">MIDFIELDER</option>
                     <option value="GOALKEPPER">GOALKEPPER</option>
                 </select>
+                <br>
                 <label class="form-label MyLabel">Team</label>
                 <select class="form-select MyInput" id="teamId"></select>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="dialogFinishButton"></button>
+                <button type="button" class="btn btn-primary" id="dialogFinishButton"></button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>

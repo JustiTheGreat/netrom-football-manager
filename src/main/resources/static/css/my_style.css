@@ -4,15 +4,14 @@ body {
 }
 nav {
     padding: 20px;
+    margin-bottom: 20px;
 }
 .actionButton{
-    margin-left: 2px;
-    margin-right: 2px;
+    margin: 2px;
 }
 #dataTable, #createButtonDiv {
     width: 80%;
     margin: auto;
-    margin-top: 20px;
 }
 .MyLabel {
     width: 30%;

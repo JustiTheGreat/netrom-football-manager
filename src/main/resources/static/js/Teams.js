@@ -1,47 +1,91 @@
-document.addEventListener("DOMContentLoaded", getAllTeams());
+const baseURL = "http://localhost:8090";
+const teamsURL = baseURL + "/teams";
+const headerForSendingJson = { "Content-type": "application/json", };
 
-function getObjectId(tr) {
-    const id = tr.getAttribute("data-uniqueid");
-    return id;
+document.addEventListener("DOMContentLoaded", getAllTeams);
+
+function httpRequest(obj) {
+    return $.ajax({
+        type: obj.requestType,
+        url: obj.url,
+        headers: obj.headers,
+        data: obj.json,
+        success: obj.onSuccessFunction,
+        error: (error) => console.log(`Error ${error}`),
+    });
 }
 
-function deleteTeam(tr) {
-    deleteTeamById(getObjectId(tr));
+function getObjectId(tr) {
+    return tr.getAttribute("data-uniqueid");
+}
+
+function deleteRowData(tr) {
+    httpRequest({
+        requestType: "DELETE",
+        url: teamsURL + "/" + getObjectId(tr),
+        onSuccessFunction: getAllTeams,
+    });
+}
+
+function getAllTeams() {
+    httpRequest({
+        url: teamsURL,
+        requestType: "GET",
+        onSuccessFunction: populateDataTable,
+    });
+}
+
+function populateDataTable(responseData) {
+    for (let i = 0; i < responseData.length; i++) {
+        responseData[i] = {
+            ...responseData[i],
+            actions:
+            '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+            '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
+        };
+    }
+    $("#dataTable").bootstrapTable("destroy");
+    $("#dataTable").bootstrapTable({data: responseData});
 }
 
 function readFormFieldsValues(id) {
-    const data = {
-        id: id,
-        name: document.getElementById("name").value,
+    return {
+        name: $("#name").val(),
     };
-    const json = JSON.stringify(data);
-    return json;
 }
 
 function setFormFieldsValues(data) {
-    document.getElementById("name").setAttribute("value", data.name);
+    $("#name").val(data.name ? data.name : "");
+}
+
+function dataValidation(data) {
+    return !data.name ? "Please complete all necessary fields!\n" : "";
 }
 
 function openCreateForm() {
     document.getElementById("formTitle").textContent = "Create team";
 
-    const data = {
-        name: "",
-        goalsScored: 0,
-        goalsReceived: 0,
-        victories: 0,
-        defeats: 0,
-        draws: 0,
-    };
-    setFormFieldsValues(data);
+    setFormFieldsValues({});
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Create";
-    finishButton.onclick = function() {
-        const json = readFormFieldsValues();
-        createTeam(json);
-    }
+    finishButton.onclick = () => {
+        const data = readFormFieldsValues();
 
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
+            return;
+        }
+
+        httpRequest({
+            requestType: "POST",
+            url: teamsURL,
+            headers: headerForSendingJson,
+            json: JSON.stringify(data),
+            onSuccessFunction: getAllTeams,
+        });
+        $("#form").modal("hide");
+    }
     $("#form").modal("show");
 }
 
@@ -49,96 +93,31 @@ function openEditForm(tr) {
     document.getElementById("formTitle").textContent = "Edit team";
 
     const id = getObjectId(tr);
-    getTeamById(id, setFormFieldsValues);
+    httpRequest({
+        requestType: "GET",
+        url: teamsURL + "/" + id,
+        onSuccessFunction: setFormFieldsValues,
+    });
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Update";
-    finishButton.onclick = function() {
-        const json = readFormFieldsValues(id);
-        updateTeamById(id, json);
+    finishButton.onclick = () => {
+        const data = readFormFieldsValues();
+        data.id = id;
+
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
+            return;
+        }
+
+        httpRequest({
+            requestType: "PUT",
+            url: teamsURL + "/" + id,
+            headers: headerForSendingJson,
+            json: JSON.stringify(data),
+            onSuccessFunction: getAllTeams,
+        });
+        $("#form").modal("hide");
     }
-
     $("#form").modal("show");
-}
-
-function createTeam(json) {
-    $.ajax({
-        type: "POST",
-        url: "http://localhost:8090/teams",
-        headers: {
-            "Content-type": "application/json",
-        },
-        data: json,
-        success: function (responseData) {
-            getAllTeams();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getAllTeams() {
-    $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/teams",
-        success: function (responseData) {
-            for (let i = 0; i < responseData.length; i++) {
-                responseData[i] = {
-                    ...responseData[i],
-                    actions:
-                    '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
-                }
-            }
-            $("#dataTable").bootstrapTable("destroy");
-            $("#dataTable").bootstrapTable({data: responseData});
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getTeamById(id, onSuccessFunction) {
-    return $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/teams/" + id,
-        success: function (responseData) {
-            onSuccessFunction(responseData);
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function updateTeamById(id, json) {
-    $.ajax({
-        type: "PUT",
-        url: "http://localhost:8090/teams/" + id,
-        headers: {
-            "Content-type": "application/json",
-        },
-        data: json,
-        success: function (responseData) {
-            getAllTeams();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function deleteTeamById(id) {
-    $.ajax({
-        type: "DELETE",
-        url: "http://localhost:8090/teams/" + id,
-        success: function (responseData) {
-            getAllTeams();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
 }

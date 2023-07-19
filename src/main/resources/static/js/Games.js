@@ -5,6 +5,14 @@ const stadiumsURL = baseURL + "/stadiums";
 const teamsURL = baseURL + "/teams";
 const headerForSendingJson = { "Content-type": "application/json", };
 
+document.addEventListener("DOMContentLoaded", () => {
+//    document.getElementById("DateAndTime").onclick = () => getAllGames(document.getElementById("DateAndTime"));
+//    document.getElementById("TeamOne").onclick = () => getAllGames(document.getElementById("TeamOne"));
+//    document.getElementById("TeamTwo").onclick = () => getAllGames(document.getElementById("TeamTwo"));
+//    document.getElementById("Stadium").onclick = () => getAllGames(document.getElementById("Stadium"));
+    getAllGames();
+});
+
 function httpRequest(obj) {
     return $.ajax({
         type: obj.requestType,
@@ -13,6 +21,18 @@ function httpRequest(obj) {
         data: obj.json,
         success: obj.onSuccessFunction,
         error: (error) => console.log(`Error ${error}`),
+    });
+}
+
+function getObjectId(tr) {
+    return tr.getAttribute("data-uniqueid");
+}
+
+function deleteRowData(tr) {
+    httpRequest({
+        url: gamesURL + "/" + getObjectId(tr),
+        requestType: "DELETE",
+        onSuccessFunction: getAllGames,
     });
 }
 
@@ -41,23 +61,12 @@ function getAllGames(th) {
     });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-//    document.getElementById("DateAndTime").onclick = () => getAllGames(document.getElementById("DateAndTime"));
-//    document.getElementById("TeamOne").onclick = () => getAllGames(document.getElementById("TeamOne"));
-//    document.getElementById("TeamTwo").onclick = () => getAllGames(document.getElementById("TeamTwo"));
-//    document.getElementById("Stadium").onclick = () => getAllGames(document.getElementById("Stadium"));
-    getAllGames();
-});
-
-function toggleResultCreation(visibility) {
-    if (visibility===true || visibility===false) {
-        document.getElementById("gameResultId").checked = visibility;
-    }
-    const hidden = !document.getElementById("gameResultId").checked;
-    document.getElementById("goalsTeamOneLabel").hidden = hidden;
-    document.getElementById("goalsTeamOne").hidden = hidden;
-    document.getElementById("goalsTeamTwoLabel").hidden = hidden;
-    document.getElementById("goalsTeamTwo").hidden = hidden;
+function randomize(tr) {
+    httpRequest({
+        url: gamesURL + "/random-game-result/" + getObjectId(tr),
+        requestType: "PUT",
+        onSuccessFunction: getAllGames,
+    });
 }
 
 function millisToFormattedDateAndTime(millis) {
@@ -76,26 +85,6 @@ function convertFormattedDateToMillis(formattedDateAndTime) {
     const hour = time[0];
     const minutes = time[1];
     return new Date(year, month, day, hour, minutes).getTime();;
-}
-
-function getObjectId(tr) {
-    return tr.getAttribute("data-uniqueid");
-}
-
-function deleteRowData(tr) {
-    httpRequest({
-        url: gamesURL + "/" + getObjectId(tr),
-        requestType: "DELETE",
-        onSuccessFunction: getAllGames,
-    });
-}
-
-function randomize(tr) {
-    httpRequest({
-        url: gamesURL + "/random-game-result/" + getObjectId(tr),
-        requestType: "PUT",
-        onSuccessFunction: getAllGames,
-    });
 }
 
 function populateDataTable(responseData){
@@ -150,10 +139,21 @@ function populateDataTable(responseData){
     });
 }
 
+function toggleResultCreation(visibility) {
+    if (visibility === true || visibility === false) {
+        document.getElementById("gameResultId").checked = visibility;
+    }
+    const hidden = !document.getElementById("gameResultId").checked;
+    document.getElementById("goalsTeamOneLabel").hidden = hidden;
+    document.getElementById("goalsTeamOne").hidden = hidden;
+    document.getElementById("goalsTeamTwoLabel").hidden = hidden;
+    document.getElementById("goalsTeamTwo").hidden = hidden;
+}
+
 function setSelectsData() {
     function setSelectData(selectId, data, valueFunction, defaultValue) {
         const select = document.getElementById(selectId);
-        select.innerHTML = `<option value>${defaultValue}</option>`;
+        select.innerHTML = `<option>${defaultValue}</option>`;
         for (let i = 0; i < data.length; i++) {
             const option = document.createElement("option");
             option.value = data[i].id;
@@ -178,8 +178,21 @@ function setSelectsData() {
     });
 }
 
+function readFormFieldsValues() {
+    return {
+        dateAndTimeInMillis: $("#dateAndTimeInMillis").val() ? convertFormattedDateToMillis($("#dateAndTimeInMillis").val()) : null,
+        teamOneId: $("#teamOneId").val(),
+        teamTwoId: $("#teamTwoId").val(),
+        stadiumId: $("#stadiumId").val(),
+        gameResultId: $("#gameResultId").prop("name"),
+        goalsTeamOne: $("#goalsTeamOne").val(),
+        goalsTeamTwo: $("#goalsTeamTwo").val(),
+    };
+}
+
 function setFormFieldsValues(data) {
-    $("#dateAndTimeInMillis").val(millisToFormattedDateAndTime(data.dateAndTimeInMillis));
+    $("#dateAndTimeInMillis").val(data.dateAndTimeInMillis ? millisToFormattedDateAndTime(data.dateAndTimeInMillis)
+        : millisToFormattedDateAndTime(Date.now()));
     $("#teamOneId").val(data.teamOneId).change();
     $("#teamTwoId").val(data.teamTwoId).change();
     $("#stadiumId").val(data.stadiumId).change();
@@ -190,17 +203,14 @@ function setFormFieldsValues(data) {
     $("#goalsTeamTwo").val(data.goalsTeamTwo ? data.goalsTeamTwo : 0);
 }
 
-function readFormFieldsValues(id) {
-    return data = {
-        id: id,
-        dateAndTimeInMillis: convertFormattedDateToMillis($("#dateAndTimeInMillis").val()),
-        teamOneId: $("#teamOneId").val() ? $("#teamOneId").val() : null,
-        teamTwoId: $("#teamTwoId").val() ? $("#teamTwoId").val() : null,
-        stadiumId: $("#stadiumId").val() ? $("#stadiumId").val() : null,
-        gameResultId: $("#gameResultId").prop("name") ? $("#gameResultId").prop("name") : null,
-        goalsTeamOne: $("#goalsTeamOne").val() ? $("#goalsTeamOne").val() : null,
-        goalsTeamTwo: $("#goalsTeamTwo").val() ? $("#goalsTeamTwo").val() : null,
-    };
+function dataValidation(data) {
+    return !data.dateAndTimeInMillis || !data.teamOneId || !data.teamTwoId || !data.stadiumId
+        ? "Please complete all necessary fields!\n" : ""
+       + data.teamOneId == data.teamTwoId ? "Please select different teams!\n" : ""
+       + data.goalsTeamOne < 0 || data.goalsTeamTwo < 0 || !Number.isInteger(Number(data.goalsTeamOne))
+            || !Number.isInteger(Number(data.goalsTeamTwo))
+        ? "Please select a sound number of goals!\n" : "";
+
 }
 
 function openCreateForm() {
@@ -208,24 +218,18 @@ function openCreateForm() {
 
     setSelectsData();
 
-    const data = {
-        dateAndTimeInMillis: Date.now(),
-        goalsTeamOne: 0,
-        goalsTeamTwo: 0,
-    };
-    setFormFieldsValues(data);
+    setFormFieldsValues({});
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Create";
     finishButton.onclick = () => {
         const data = readFormFieldsValues();
-        const errorString = !data.dateAndTimeInMillis || !data.teamOneId || !data.teamTwoId || !data.stadiumId ? "Please complete all necessary fields!\n" : ""
-            + data.teamOneId == data.teamTwoId ? "Please select different teams!\n" : ""
-            + data.goalsTeamOne < 0 || data.goalsTeamTwo < 0 || !Number.isInteger(Number(data.goalsTeamOne)) || !Number.isInteger(Number(data.goalsTeamTwo))? "Please select a sound number of goals!\n" : "";
-        if (errorString) {
-            alert(errorString);
+
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
             return;
         }
+
         const requests = [];
         let createGameResultRequest;
         if (document.getElementById("gameResultId").checked) {
@@ -252,7 +256,6 @@ function openCreateForm() {
         }));
         $("#form").modal("hide");
     };
-
     $("#form").modal("show");
 }
 
@@ -263,7 +266,7 @@ function openEditForm(tr) {
 
     const id = getObjectId(tr);
 
-    const set = httpRequest({
+    httpRequest({
         url: gamesURL + "/" + id,
         requestType: "GET",
         onSuccessFunction: (responseData) => {
@@ -289,11 +292,9 @@ function openEditForm(tr) {
     finishButton.onclick = () => {
         const data = readFormFieldsValues();
         data.id = id;
-        const errorString = !data.dateAndTimeInMillis || !data.teamOneId || !data.teamTwoId || !data.stadiumId ? "Please complete all necessary fields!\n" : ""
-            + data.teamOneId == data.teamTwoId ? "Please select different teams!\n" : ""
-            + data.goalsTeamOne < 0 || data.goalsTeamTwo < 0 ? "Please select positive numbers of goals!\n" : "";
-        if (errorString) {
-            alert(errorString);
+
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
             return;
         }
 
@@ -334,6 +335,5 @@ function openEditForm(tr) {
         }));
         $("#form").modal("hide");
     };
-
     $("#form").modal("show");
 }

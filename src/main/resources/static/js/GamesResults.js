@@ -2,6 +2,8 @@ const baseURL = "http://localhost:8090";
 const gamesResultsURL = baseURL + "/games-results";
 const headerForSendingJson = { "Content-type": "application/json", };
 
+document.addEventListener("DOMContentLoaded", getAllGamesResults);
+
 function httpRequest(obj) {
     return $.ajax({
         type: obj.requestType,
@@ -10,6 +12,18 @@ function httpRequest(obj) {
         data: obj.json,
         success: obj.onSuccessFunction,
         error: (error) => console.log(`Error ${error}`),
+    });
+}
+
+function getObjectId(tr) {
+    return tr.getAttribute("data-uniqueid");
+}
+
+function deleteRowData(tr) {
+    httpRequest({
+        requestType: "DELETE",
+        url: gamesResultsURL + "/" + getObjectId(tr),
+        onSuccessFunction: getAllGamesResults(),
     });
 }
 
@@ -38,8 +52,8 @@ function populateDataTable(responseData) {
                     ...responseData[i],
                     ...response,
                     actions:
-                    '<button type="button" class="btn btn-primary btn-block" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
+                    '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+                    '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
                 };
                 responseData[i].dateAndTimeInMillis = millisToFormattedDateAndTime(response.dateAndTimeInMillis);
             },
@@ -53,31 +67,22 @@ function populateDataTable(responseData) {
     });
 }
 
-document.addEventListener("DOMContentLoaded", getAllGamesResults());
-
-function getObjectId(tr) {
-    return tr.getAttribute("data-uniqueid");
-}
-
-function deleteRowData(tr) {
-    httpRequest({
-        requestType: "DELETE",
-        url: gamesResultsURL + "/" + getObjectId(tr),
-        success: getAllGamesResults(),
-    });
-}
-
-function readFormFieldsValues(id) {
+function readFormFieldsValues() {
     return {
-        id: id,
-        goalsTeamOne: $("goalsTeamOne").val(),
-        goalsTeamTwo: $("goalsTeamTwo").val(),
+        goalsTeamOne: $("#goalsTeamOne").val(),
+        goalsTeamTwo: $("#goalsTeamTwo").val(),
     };
 }
 
 function setFormFieldsValues(data) {
-    $("goalsTeamOne").val(data.goalsTeamOne);
-    $("goalsTeamTwo").val(data.goalsTeamTwo);
+    $("#goalsTeamOne").val(data.goalsTeamOne ? data.goalsTeamOne : 0);
+    $("#goalsTeamTwo").val(data.goalsTeamTwo ? data.goalsTeamTwo : 0);
+}
+
+function dataValidation(data) {
+    return data.goalsTeamOne < 0 || data.goalsTeamTwo < 0
+       || !Number.isInteger(Number(data.goalsTeamOne)) || !Number.isInteger(Number(data.goalsTeamTwo))
+       ? "Please select a sound number of goals!\n" : "";
 }
 
 function openEditForm(tr) {
@@ -87,21 +92,28 @@ function openEditForm(tr) {
     httpRequest({
         requestType: "GET",
         url: gamesResultsURL + "/" + id,
-        success: setFormFieldsValues,
+        onSuccessFunction: setFormFieldsValues,
     });
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Update";
     finishButton.onclick = () => {
-        const obj = readFormFieldsValues(id);
-        return;
+        const data = readFormFieldsValues();
+        data.id = id;
+
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
+            return;
+        }
+
         httpRequest({
-            type: "PUT",
-            url: "http://localhost:8090/games-results/" + id,
+            requestType: "PUT",
+            url: gamesResultsURL + "/" + id,
             headers: headerForSendingJson,
-            json: JSON.stringify(readFormFieldsValues(id)),
-            success: getAllGamesResults,
+            json: JSON.stringify(data),
+            onSuccessFunction: getAllGamesResults,
         });
+        $("#form").modal("hide");
     }
     $("#form").modal("show");
 }

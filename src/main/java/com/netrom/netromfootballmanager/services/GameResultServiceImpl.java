@@ -37,11 +37,8 @@ public class GameResultServiceImpl implements GameResultService {
         if (newDao.getGoalsTeamOne() != null && newDao.getGoalsTeamOne() >= 0) {
             gameDAO.setGoalsTeamOne(newDao.getGoalsTeamOne());
         }
-        if (newDao.getGoalsTeamTwo() != null) {
+        if (newDao.getGoalsTeamTwo() != null && newDao.getGoalsTeamOne() >= 0) {
             gameDAO.setGoalsTeamTwo(newDao.getGoalsTeamTwo());
-        }
-        if (newDao.getGame() != null) {
-            gameDAO.setGame(newDao.getGame());
         }
         return gameResultRepository.save(gameDAO);
     }

@@ -1,199 +1,167 @@
-document.addEventListener("DOMContentLoaded", getAllPlayers());
+const baseURL = "http://localhost:8090";
+const playersURL = baseURL + "/players";
+const teamsURL = baseURL + "/teams";
+const headerForSendingJson = { "Content-type": "application/json", };
+
+document.addEventListener("DOMContentLoaded", getAllPlayers);
+
+function httpRequest(obj) {
+    return $.ajax({
+        type: obj.requestType,
+        url: obj.url,
+        headers: obj.headers,
+        data: obj.json,
+        success: obj.onSuccessFunction,
+        error: (error) => console.log(`Error ${error}`),
+    });
+}
 
 function getObjectId(tr) {
-    const id = tr.getAttribute("data-uniqueid");
-    return id;
+    return tr.getAttribute("data-uniqueid");
 }
 
 function deleteRowData(tr) {
-    deletePlayerById(getObjectId(tr));
+    httpRequest({
+        requestType: "DELETE",
+        url: playersURL + "/" + getObjectId(tr),
+        onSuccessFunction: getAllPlayers,
+    });
+}
+
+function getAllPlayers() {
+    httpRequest({
+        url: playersURL,
+        requestType: "GET",
+        onSuccessFunction: populateDataTable,
+    });
+}
+
+function populateDataTable(responseData) {
+    const requests = [];
+    for (let i = 0; i < responseData.length; i++) {
+        responseData[i] = {
+            ...responseData[i],
+            actions:
+            '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+            '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
+        };
+
+        if (responseData[i].teamId) {
+            const request = httpRequest({
+                url: teamsURL + "/" + responseData[i].teamId,
+                requestType: "GET",
+                onSuccessFunction: (response) => responseData[i].teamId = response.name,
+            });
+            requests.push(request);
+        }
+    }
+
+    $.when.apply(this, requests).done(() => {
+        $("#dataTable").bootstrapTable("destroy");
+        $("#dataTable").bootstrapTable({data: responseData});
+    });
+}
+
+function setSelectData(selectId, data, valueFunction, defaultValue) {
+    const select = document.getElementById(selectId);
+    select.innerHTML = `<option value>${defaultValue}</option>`;
+    for (let i = 0; i < data.length; i++) {
+        const option = document.createElement("option");
+        option.value = data[i].id;
+        option.text = valueFunction(data[i]);
+        select.appendChild(option);
+    }
 }
 
 function readFormFieldsValues(id) {
-    const data = {
-        id: id,
-        name: document.getElementById("name").value,
-        goalsScored: document.getElementById("goalsScored").value,
-        role: document.getElementById("role").value,
-        teamId: document.getElementById("teamId").value,
+    return {
+        name: $("#name").val(),
+        goalsScored: $("#goalsScored").val(),
+        role: $("#role").val(),
+        teamId: $("#teamId").val(),
     };
-    const json = JSON.stringify(data);
-    return json;
 }
 
 function setFormFieldsValues(data) {
-    document.getElementById("name").setAttribute("value", data.name);
-    document.getElementById("goalsScored").setAttribute("value", data.goalsScored);
-    document.getElementById("role").value = data.role;
-    document.getElementById("teamId").value = data.teamId;
+    $("#name").val(data.name ? data.name : "");
+    $("#goalsScored").val(data.goalsScored ? data.goalsScored : 0);
+    $("#role").val(data.role ? data.role : "DEFENDER");
+    $("#teamId").val(data.teamId);
 }
 
-function setTeamSelectData(responseData) {
-    const select = document.getElementById("teamId");
-    select.innerHTML = '<option value="null">No team</option>';
-    for (let i = 0; i < responseData.length; i++) {
-        const option = document.createElement("option");
-        option.value = responseData[i].id;
-        option.text = responseData[i].name;
-        select.appendChild(option);
-    }
+function dataValidation(data) {
+    return !data.name ? "Please complete all necessary fields!\n" : ""
+        + data.goalsScored < 0 || !Number.isInteger(Number(data.goalsScored)) ? "Please select a sound number of goals!\n" : "";
 }
 
 function openCreateForm() {
     document.getElementById("formTitle").textContent = "Create player";
 
-    getAllTeams(setTeamSelectData);
+    httpRequest({
+        requestType: "GET",
+        url: teamsURL,
+        onSuccessFunction: (responseData) => setSelectData("teamId", responseData, obj => obj.name, "No team"),
+    });
 
-    const data = {
-        name: "",
-        goalsScored: 0,
-        role: "DEFENDER",
-        teamId: null,
-    };
-    setFormFieldsValues(data);
+    setFormFieldsValues({});
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Create";
-    finishButton.onclick = function() {
-        const json = readFormFieldsValues();
-        createPlayer(json);
-    }
+    finishButton.onclick = () => {
+        const data = readFormFieldsValues();
 
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
+            return;
+        }
+
+        httpRequest({
+            requestType: "POST",
+            url: playersURL,
+            headers: headerForSendingJson,
+            json: JSON.stringify(data),
+            onSuccessFunction: getAllPlayers,
+        });
+        $("#form").modal("hide");
+    }
     $("#form").modal("show");
 }
 
 function openEditForm(tr) {
     document.getElementById("formTitle").textContent = "Edit player";
 
-    getAllTeams(setTeamSelectData);
+    httpRequest({
+        requestType: "GET",
+        url: teamsURL,
+        onSuccessFunction: (responseData) => setSelectData("teamId", responseData, obj => obj.name, "No team"),
+    });
 
     const id = getObjectId(tr);
-    getPlayerById(id, setFormFieldsValues);
+    httpRequest({
+        requestType: "GET",
+        url: playersURL + "/" + id,
+        onSuccessFunction: setFormFieldsValues,
+    });
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Update";
-    finishButton.onclick = function() {
-        const json = readFormFieldsValues(id);
-        updatePlayerById(id, json);
+    finishButton.onclick = () => {
+        const data = readFormFieldsValues();
+        data.id = id;
+
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
+            return;
+        }
+
+        httpRequest({
+            requestType: "PUT",
+            url: playersURL + "/" + id,
+            headers: headerForSendingJson,
+            json: JSON.stringify(data),
+            onSuccessFunction: getAllPlayers,
+        });
+        $("#form").modal("hide");
     }
-
     $("#form").modal("show");
-}
-
-function createPlayer(json) {
-    $.ajax({
-        type: "POST",
-        url: "http://localhost:8090/players",
-        headers: {
-            "Content-type": "application/json",
-        },
-        data: json,
-        success: function (responseData) {
-            getAllPlayers();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getAllPlayers() {
-    $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/players",
-        success: function (responseData) {
-            const requests = [];
-            for (let i = 0; i < responseData.length; i++) {
-                responseData[i] = {
-                    ...responseData[i],
-                    actions:
-                    '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
-                }
-
-                if (responseData[i].teamId) {
-                    const request = getTeamById(responseData[i].teamId, function(response) {
-                        responseData[i].teamId = response.name;
-                    });
-                    requests.push(request);
-                }
-            }
-            $.when.apply(this, requests).done(function() {
-                $("#dataTable").bootstrapTable("destroy");
-                $("#dataTable").bootstrapTable({data: responseData});
-            });
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getPlayerById(id, onSuccessFunction) {
-    return $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/players/" + id,
-        success: function (responseData) {
-            onSuccessFunction(responseData);
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function updatePlayerById(id, json) {
-    $.ajax({
-        type: "PUT",
-        url: "http://localhost:8090/players/" + id,
-        headers: {
-            "Content-type": "application/json",
-        },
-        data: json,
-        success: function (responseData) {
-            getAllPlayers();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function deletePlayerById(id) {
-    $.ajax({
-        type: "DELETE",
-        url: "http://localhost:8090/players/" + id,
-        success: function (responseData) {
-            getAllPlayers();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getAllTeams(onSuccessFunction) {
-    $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/teams",
-        success: function (responseData) {
-            onSuccessFunction(responseData);
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getTeamById(id, onSuccessFunction) {
-    return $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/teams/" + id,
-        success: function (responseData) {
-            onSuccessFunction(responseData);
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
 }

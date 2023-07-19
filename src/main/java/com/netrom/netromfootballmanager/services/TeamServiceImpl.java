@@ -40,15 +40,6 @@ public class TeamServiceImpl implements TeamService {
         if (newDao.getName() != null && !newDao.getName().isBlank()) {
             teamDB.setName(newDao.getName());
         }
-        if (newDao.getPlayers() != null) {
-            teamDB.setPlayers(newDao.getPlayers());
-        }
-        if (newDao.getGamesAsTeamOne() != null) {
-            teamDB.setGamesAsTeamOne(newDao.getGamesAsTeamOne());
-        }
-        if (newDao.getGamesAsTeamTwo() != null) {
-            teamDB.setGamesAsTeamTwo(newDao.getGamesAsTeamTwo());
-        }
         return teamRepository.save(teamDB);
     }
 

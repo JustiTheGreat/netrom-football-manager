@@ -1,45 +1,93 @@
-document.addEventListener("DOMContentLoaded", getAllStadiums());
+const baseURL = "http://localhost:8090";
+const stadiumsURL = baseURL + "/stadiums";
+const headerForSendingJson = { "Content-type": "application/json", };
+
+document.addEventListener("DOMContentLoaded", getAllStadiums);
+
+function httpRequest(obj) {
+    return $.ajax({
+        type: obj.requestType,
+        url: obj.url,
+        headers: obj.headers,
+        data: obj.json,
+        success: obj.onSuccessFunction,
+        error: (error) => console.log(`Error ${error}`),
+    });
+}
 
 function getObjectId(tr) {
-    const id = tr.getAttribute("data-uniqueid");
-    return id;
+    return tr.getAttribute("data-uniqueid");
 }
 
 function deleteRowData(tr) {
-    deleteStadiumById(getObjectId(tr));
+    httpRequest({
+        requestType: "DELETE",
+        url: stadiumsURL + "/" + getObjectId(tr),
+        onSuccessFunction: getAllStadiums,
+    });
 }
 
-function readFormFieldsValues(id) {
-    const data = {
-        id: id,
-        name: document.getElementById("name").value,
-        location: document.getElementById("location").value,
+function getAllStadiums() {
+    httpRequest({
+        url: stadiumsURL,
+        requestType: "GET",
+        onSuccessFunction: populateDataTable,
+    });
+}
+
+function populateDataTable(responseData) {
+    for (let i = 0; i < responseData.length; i++) {
+        responseData[i] = {
+            ...responseData[i],
+            actions:
+            '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
+            '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
+        };
+    }
+    $("#dataTable").bootstrapTable("destroy");
+    $("#dataTable").bootstrapTable({data: responseData});
+}
+
+function readFormFieldsValues() {
+    return {
+        name: $("#name").val(),
+        location: $("#location").val(),
     };
-    const json = JSON.stringify(data);
-    return json;
 }
 
 function setFormFieldsValues(data) {
-    document.getElementById("name").setAttribute("value", data.name);
-    document.getElementById("location").setAttribute("value", data.location);
+    $("#name").val(data.name ? data.name : "");
+    $("#location").val(data.name ? data.name : "");
+}
+
+function dataValidation(data) {
+    return !data.name || !data.location ? "Please complete all necessary fields!\n" : "";
 }
 
 function openCreateForm() {
     document.getElementById("formTitle").textContent = "Create stadium";
 
-    const data = {
-        name: "",
-        location: "",
-    };
-    setFormFieldsValues(data);
+    setFormFieldsValues({});
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Create";
-    finishButton.onclick = function() {
-        const json = readFormFieldsValues();
-        createStadium(json);
-    }
+    finishButton.onclick = () => {
+        const data = readFormFieldsValues();
 
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
+            return;
+        }
+
+        httpRequest({
+            requestType: "POST",
+            url: stadiumsURL,
+            headers: headerForSendingJson,
+            json: JSON.stringify(data),
+            onSuccessFunction: getAllStadiums,
+        });
+        $("#form").modal("hide");
+    }
     $("#form").modal("show");
 }
 
@@ -47,96 +95,31 @@ function openEditForm(tr) {
     document.getElementById("formTitle").textContent = "Edit stadium";
 
     const id = getObjectId(tr);
-    getStadiumById(id, setFormFieldsValues);
+    httpRequest({
+        requestType: "GET",
+        url: stadiumsURL + "/" + id,
+        onSuccessFunction: setFormFieldsValues,
+    });
 
     const finishButton = document.getElementById("dialogFinishButton");
     finishButton.textContent = "Update";
-    finishButton.onclick = function() {
-        const json = readFormFieldsValues(id);
-        updateStadiumById(id, json);
+    finishButton.onclick = () => {
+        const data = readFormFieldsValues();
+        data.id = id;
+
+        if (dataValidation(data)) {
+            alert(dataValidation(data));
+            return;
+        }
+
+        httpRequest({
+            requestType: "PUT",
+            url: stadiumsURL + "/" + id,
+            headers: headerForSendingJson,
+            json: JSON.stringify(data),
+            onSuccessFunction: getAllStadiums,
+        });
+        $("#form").modal("hide");
     }
-
     $("#form").modal("show");
-}
-
-function createStadium(json) {
-    $.ajax({
-        type: "POST",
-        url: "http://localhost:8090/stadiums",
-        headers: {
-            "Content-type": "application/json",
-        },
-        data: json,
-        success: function (responseData) {
-            getAllStadiums();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getAllStadiums() {
-    $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/stadiums",
-        success: function (responseData) {
-            for (let i = 0; i < responseData.length; i++) {
-                responseData[i] = {
-                    ...responseData[i],
-                    actions:
-                    '<button type="button" class="btn btn-primary btn-block actionButton" onclick="openEditForm(this.parentElement.parentElement)">Edit</button>' +
-                    '<button type="button" class="btn btn-danger btn-block actionButton" onclick="deleteRowData(this.parentElement.parentElement)">Delete</button>',
-                }
-            }
-            $("#dataTable").bootstrapTable("destroy");
-            $("#dataTable").bootstrapTable({data: responseData});
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function getStadiumById(id, onSuccessFunction) {
-    return $.ajax({
-        type: "GET",
-        url: "http://localhost:8090/stadiums/" + id,
-        success: function (responseData) {
-            onSuccessFunction(responseData);
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function updateStadiumById(id, json) {
-    $.ajax({
-        type: "PUT",
-        url: "http://localhost:8090/stadiums/" + id,
-        headers: {
-            "Content-type": "application/json",
-        },
-        data: json,
-        success: function (responseData) {
-            getAllStadiums();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
-}
-
-function deleteStadiumById(id) {
-    $.ajax({
-        type: "DELETE",
-        url: "http://localhost:8090/stadiums/" + id,
-        success: function (responseData) {
-            getAllStadiums();
-        },
-        error: function (error) {
-            console.log(`Error ${error}`);
-        },
-    });
 }

@@ -40,9 +40,7 @@ public class PlayerServiceImpl implements PlayerService {
         if (player.getRole() != null) {
             playerDB.setRole(player.getRole());
         }
-        if (player.getTeam() != null) {
-            playerDB.setTeam(player.getTeam());
-        }
+        playerDB.setTeam(player.getTeam());
         return playerRepository.save(playerDB);
     }
 

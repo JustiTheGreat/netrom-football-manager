@@ -40,9 +40,6 @@ public class StadiumServiceImpl implements StadiumService {
         if (newDao.getLocation() != null && !newDao.getLocation().isBlank()) {
             stadiumDB.setLocation(newDao.getLocation());
         }
-        if (newDao.getGames() != null) {
-            stadiumDB.setGames(newDao.getGames());
-        }
         return stadiumRepository.save(stadiumDB);
     }
 
